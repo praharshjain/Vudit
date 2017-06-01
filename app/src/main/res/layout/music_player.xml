@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content">
+
+    <LinearLayout
+        android:id="@+id/titlebar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:orientation="horizontal"
+        android:paddingBottom="10dp">
+
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:padding="10dp"
+            android:src="@drawable/file_music" />
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Title"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:textColor="#ffffff" />
+
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/album_art"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/titlebar"
+        android:layout_centerHorizontal="true"
+        android:paddingLeft="5dp"
+        android:paddingRight="5dp"
+        android:src="@drawable/default_album_art" />
+
+    <SeekBar
+        android:id="@+id/seek"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:progressBackgroundTint="@color/colorAccent"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/album_art"
+        android:indeterminate="false" />
+
+    <TextView
+        android:id="@+id/current_duration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_below="@+id/seek"
+        android:paddingLeft="10dp"
+        android:textColor="#cccccc" />
+
+    <TextView
+        android:id="@+id/total_duration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/seek"
+        android:paddingRight="10dp"
+        android:textColor="#cccccc" />
+
+    <ImageButton
+        android:id="@+id/btn_rev"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/current_duration"
+        android:layout_toLeftOf="@+id/btn_play"
+        android:layout_toStartOf="@+id/btn_play"
+        android:backgroundTint="@color/colorPrimary"
+        android:src="@android:drawable/ic_media_rew" />
+
+    <ImageButton
+        android:id="@+id/btn_play"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/btn_rev"
+        android:layout_centerHorizontal="true"
+        android:backgroundTint="@color/colorPrimary"
+        android:src="@android:drawable/ic_media_play" />
+
+    <ImageButton
+        android:id="@+id/btn_forward"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignTop="@+id/btn_rev"
+        android:layout_toEndOf="@+id/btn_play"
+        android:layout_toRightOf="@+id/btn_play"
+        android:backgroundTint="@color/colorPrimary"
+        android:src="@android:drawable/ic_media_ff" />
+
+</RelativeLayout>

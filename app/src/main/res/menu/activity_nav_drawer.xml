@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="none">
+        <item
+            android:id="@+id/nav_home"
+            android:icon="@drawable/folder"
+            android:title="Home" />
+        <item
+            android:id="@+id/nav_root"
+            android:icon="@android:drawable/btn_star_big_off"
+            android:title="Root Folder" />
+        <item
+            android:id="@+id/nav_sdcard"
+            android:icon="@android:drawable/stat_notify_sdcard"
+            android:visible="false"
+            android:title="External Storage" />
+        <item
+            android:id="@+id/nav_recent"
+            android:icon="@android:drawable/ic_menu_recent_history"
+            android:title="Recent Items" />
+        <item
+            android:id="@+id/nav_settings"
+            android:icon="@android:drawable/ic_menu_preferences"
+            android:visible="false"
+            android:title="Settings" />
+    </group>
+
+    <item android:title="Communicate">
+        <menu>
+            <item
+                android:id="@+id/nav_about"
+                android:icon="@android:drawable/ic_dialog_info"
+                android:title="About" />
+            <item
+                android:id="@+id/nav_feedback"
+                android:icon="@android:drawable/ic_dialog_email"
+                android:title="Feedback" />
+        </menu>
+    </item>
+
+</menu>
