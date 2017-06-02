@@ -2,6 +2,7 @@ package com.praharsh.vudit;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -28,6 +29,7 @@ import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -44,9 +46,12 @@ import android.webkit.MimeTypeMap;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.SearchView;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -70,7 +75,8 @@ import java.util.concurrent.TimeUnit;
 import static android.os.Build.VERSION.SDK_INT;
 
 public class FileViewer extends AppCompatActivity
-        implements ListView.OnScrollListener, NavigationView.OnNavigationItemSelectedListener {
+        implements ListView.OnScrollListener, NavigationView.OnNavigationItemSelectedListener,
+        SearchView.OnQueryTextListener {
     static boolean mBusy = false, recentsView = false;
     static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1;
     static ViewHolder holder;
@@ -78,11 +84,12 @@ public class FileViewer extends AppCompatActivity
     DrawerLayout drawer;
     ActionBarDrawerToggle toggle;
     ListView lv;
-    File file, files[];
+    File file, files[],origFiles[];
     RecentFilesStack recent;
     EfficientAdapter adap;
+    FileFilter fileFilter;
     Intent in;
-    TextView name, date, details, current_duration, total_duration, title;
+    TextView current_duration, total_duration, title;
     ImageView album_art, icon;
     ImageButton btn_play, btn_rev, btn_forward;
     SeekBar seek;
@@ -139,7 +146,7 @@ public class FileViewer extends AppCompatActivity
             }
         });
         //Check if secondary storage is available
-        if (System.getenv("SECONDARY_STORAGE")!= null) {
+        if (System.getenv("SECONDARY_STORAGE") != null) {
             navigationView.getMenu().findItem(R.id.nav_sdcard).setVisible(true);
         }
         recent = new RecentFilesStack(10);
@@ -160,6 +167,19 @@ public class FileViewer extends AppCompatActivity
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.mainmenu, menu);
+        // Associate searchable configuration with the SearchView
+        SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
+        MenuItem searchItem = menu.findItem(R.id.search);
+        SearchView searchView = (SearchView) MenuItemCompat.getActionView(searchItem);
+        searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
+        searchView.setSubmitButtonEnabled(true);
+        searchView.setOnQueryTextListener(this);
+        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
+            @Override
+            public boolean onClose() {
+                return false;
+            }
+        });
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -177,6 +197,17 @@ public class FileViewer extends AppCompatActivity
                 break;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onQueryTextSubmit(String query) {
+        return false;
+    }
+
+    @Override
+    public boolean onQueryTextChange(String query) {
+        adap.getFilter().filter(query);
+        return true;
     }
 
     @Override
@@ -302,7 +333,7 @@ public class FileViewer extends AppCompatActivity
             return;
         current_file.setReadable(true);
         if (!current_file.canRead()) {
-            showMsg("File is not readable", 1);
+            showMsg((current_file.isDirectory()?"Folder":"File")+" is not readable", 1);
             return;
         }
         recent.push(current_file);
@@ -631,7 +662,8 @@ public class FileViewer extends AppCompatActivity
             properties_dialog.setIcon(R.drawable.folder);
             size.setText("calculating...");
             if (current_file.listFiles() != null) {
-                info += "\n" + (current_file.listFiles().length > 0 ? "Contains Files" : "Empty Folder");
+                int n = current_file.listFiles().length;
+                info += "\n" + (n > 0 ? "Contains "+n+" Items" : "Empty Folder");
             }
             details.setText(info);
             final Handler h = new Handler() {
@@ -688,6 +720,7 @@ public class FileViewer extends AppCompatActivity
                 });
             } catch (Exception e) {
             }
+            origFiles = files.clone();
             toolbar.setTitle(file.getName());
             recentsView = false;
             updateList();
@@ -702,6 +735,7 @@ public class FileViewer extends AppCompatActivity
         for (int i = 0; temp.size() > 0; i++) {
             files[i] = (File) temp.pop();
         }
+        origFiles = files.clone();
         toolbar.setTitle("Recent Items");
         recentsView = true;
         updateList();
@@ -737,7 +771,8 @@ public class FileViewer extends AppCompatActivity
             editor.commit();
             RecentFilesStack temp = (RecentFilesStack<File>) recent.clone();
             File f;
-            for (int i = 0; i < temp.size(); i++) {
+            int n = temp.size();
+            for (int i = 0; i < n; i++) {
                 f = (File) temp.pop();
                 if (f.exists())
                     editor.putString(f.getName(), f.getPath());
@@ -886,7 +921,7 @@ public class FileViewer extends AppCompatActivity
         return BitmapFactory.decodeFile(pathToFile, options);
     }
 
-    class EfficientAdapter extends BaseAdapter {
+    class EfficientAdapter extends BaseAdapter implements Filterable {
         private LayoutInflater mInflater;
         private Context mContext;
 
@@ -960,6 +995,14 @@ public class FileViewer extends AppCompatActivity
                 holder.icon.setTag(this);
             }
             return view;
+        }
+
+        @Override
+        public Filter getFilter() {
+            if (fileFilter == null) {
+                fileFilter = new FileFilter();
+            }
+            return fileFilter;
         }
     }
 
@@ -1050,6 +1093,34 @@ public class FileViewer extends AppCompatActivity
                 this.remove(0);
             }
             return super.push(f);
+        }
+    }
+
+    class FileFilter extends Filter {
+        @Override
+        protected FilterResults performFiltering(CharSequence constraint) {
+            FilterResults filterResults = new FilterResults();
+            if (constraint != null && constraint.length() > 0) {
+                ArrayList<File> tempList = new ArrayList<File>();
+                for (File f : origFiles) {
+                    if (f.getName().toLowerCase().contains(constraint.toString().toLowerCase())) {
+                        tempList.add(f);
+                    }
+                }
+                filterResults.count = tempList.size();
+                File f[] = new File[filterResults.count];
+                filterResults.values = tempList.toArray(f);
+            } else {
+                filterResults.count = files.length;
+                filterResults.values = files;
+            }
+            return filterResults;
+        }
+
+        @Override
+        protected void publishResults(CharSequence charSequence, FilterResults results) {
+            files = (File[]) results.values;
+            updateList();
         }
     }
 }
