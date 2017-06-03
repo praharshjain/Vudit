@@ -4,17 +4,29 @@
     <group android:checkableBehavior="none">
         <item
             android:id="@+id/nav_home"
-            android:icon="@drawable/folder"
+            android:icon="@drawable/home"
             android:title="Home" />
         <item
             android:id="@+id/nav_root"
-            android:icon="@android:drawable/btn_star_big_off"
+            android:icon="@drawable/root_folder"
             android:title="Root Folder" />
         <item
             android:id="@+id/nav_sdcard"
             android:icon="@android:drawable/stat_notify_sdcard"
-            android:visible="false"
-            android:title="External Storage" />
+            android:title="External Storage"
+            android:visible="false" />
+        <item
+            android:id="@+id/nav_camera"
+            android:icon="@android:drawable/ic_menu_camera"
+            android:title="Camera Folder" />
+        <item
+            android:id="@+id/nav_downloads"
+            android:icon="@android:drawable/stat_sys_download_done"
+            android:title="Downloads" />
+        <item
+            android:id="@+id/nav_favourites"
+            android:icon="@android:drawable/btn_star_big_on"
+            android:title="Favourites" />
         <item
             android:id="@+id/nav_recent"
             android:icon="@android:drawable/ic_menu_recent_history"
@@ -22,8 +34,8 @@
         <item
             android:id="@+id/nav_settings"
             android:icon="@android:drawable/ic_menu_preferences"
-            android:visible="false"
-            android:title="Settings" />
+            android:title="Settings"
+            android:visible="false" />
     </group>
 
     <item android:title="Communicate">

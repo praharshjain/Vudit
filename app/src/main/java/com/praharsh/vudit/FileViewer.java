@@ -77,15 +77,16 @@ import static android.os.Build.VERSION.SDK_INT;
 public class FileViewer extends AppCompatActivity
         implements ListView.OnScrollListener, NavigationView.OnNavigationItemSelectedListener,
         SearchView.OnQueryTextListener {
-    static boolean mBusy = false, recentsView = false;
+    static boolean mBusy = false, recentsView = false, favouritesView = false;
     static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1;
     static ViewHolder holder;
     Toolbar toolbar;
     DrawerLayout drawer;
     ActionBarDrawerToggle toggle;
     ListView lv;
-    File file, files[],origFiles[];
+    File file, files[], origFiles[];
     RecentFilesStack recent;
+    ArrayList<File> favourites;
     EfficientAdapter adap;
     FileFilter fileFilter;
     Intent in;
@@ -115,11 +116,6 @@ public class FileViewer extends AppCompatActivity
             finish();
             return;
         }
-        in = getIntent();
-        if (Intent.ACTION_VIEW.equals(in.getAction()) && in.getType() != null) {
-            openFile(new File(in.getData().getPath()));
-            return;
-        }
         setContentView(R.layout.file_viewer);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -146,20 +142,28 @@ public class FileViewer extends AppCompatActivity
             }
         });
         //Check if secondary storage is available
-        if (System.getenv("SECONDARY_STORAGE") != null) {
+        String sdcard = System.getenv("SECONDARY_STORAGE");
+        if ((sdcard == null) || (sdcard.length() == 0)) {
+            sdcard = System.getenv("EXTERNAL_SDCARD_STORAGE");
+        }
+        if (sdcard != null && sdcard.length() > 0) {
             navigationView.getMenu().findItem(R.id.nav_sdcard).setVisible(true);
         }
         recent = new RecentFilesStack(10);
-        restoreRecentData();
+        favourites = new ArrayList<File>();
+        restoreData();
+        adap = new EfficientAdapter(getApplicationContext());
         updateFiles(Environment.getExternalStorageDirectory());
-        adap = new EfficientAdapter(getApplicationContext());// FileAdapter();
         lv.setAdapter(adap);
         lv.setOnScrollListener(this);
+        in = getIntent();
+        if (Intent.ACTION_VIEW.equals(in.getAction()) && in.getType() != null)
+            openFile(new File(in.getData().getPath()));
     }
 
     @Override
     protected void onStop() {
-        saveRecentData();
+        saveData();
         super.onStop();
     }
 
@@ -189,6 +193,8 @@ public class FileViewer extends AppCompatActivity
             case R.id.action_refresh:
                 if (recentsView)
                     recentFiles();
+                else if (favouritesView)
+                    favouriteFiles();
                 else
                     updateFiles(file);
                 break;
@@ -222,14 +228,35 @@ public class FileViewer extends AppCompatActivity
             updateFiles(f);
         } else if (id == R.id.nav_sdcard) {
             String sdcard = System.getenv("SECONDARY_STORAGE");
+            if ((sdcard == null) || (sdcard.length() == 0)) {
+                sdcard = System.getenv("EXTERNAL_SDCARD_STORAGE");
+            }
             if (sdcard != null) {
                 File f = new File(sdcard);
                 if (f.exists())
                     updateFiles(f);
                 else
-                    showMsg("SD Card not accessible", 1);
+                    showMsg("External Storage/SD Card not accessible", 1);
             } else
-                showMsg("SD Card not accessible", 1);
+                showMsg("External Storage/SD Card not accessible", 1);
+        } else if (id == R.id.nav_camera) {
+            File f = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+            if (f == null || f.getPath().equals("") || !f.exists())
+                f = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM");
+            if (f.exists())
+                updateFiles(f);
+            else
+                showMsg("Camera folder not accessible", 1);
+        } else if (id == R.id.nav_downloads) {
+            File f = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            if (f == null || f.getPath().equals("") || !f.exists())
+                f = new File(Environment.getExternalStorageDirectory().getPath() + "/Downloads");
+            if (f.exists())
+                updateFiles(f);
+            else
+                showMsg("Downloads folder not accessible", 1);
+        } else if (id == R.id.nav_favourites) {
+            favouriteFiles();
         } else if (id == R.id.nav_recent) {
             recentFiles();
         } else if (id == R.id.nav_settings) {
@@ -281,7 +308,8 @@ public class FileViewer extends AppCompatActivity
                 menu.add(Menu.NONE, 1, Menu.NONE, "Open with default system action");
                 menu.add(Menu.NONE, 2, Menu.NONE, "Share");
             }
-            menu.add(Menu.NONE, 3, Menu.NONE, "Properties");
+            menu.add(Menu.NONE, 3, Menu.NONE, favouritesView ? "Remove from Favourites" : "Add to Favourites");
+            menu.add(Menu.NONE, 4, Menu.NONE, "Properties");
         }
     }
 
@@ -321,6 +349,21 @@ public class FileViewer extends AppCompatActivity
                 }
                 return true;
             case 3:
+                if (favouritesView) {
+                    int i = favourites.indexOf(current_file);
+                    if (i >= 0) {
+                        favourites.remove(i);
+                        showMsg(current_file.getName() + " removed from Favourites", 1);
+                    }
+                } else {
+                    if (favourites.size() < 20) {
+                        favourites.add(current_file);
+                        showMsg(current_file.getName() + " added to Favourites", 1);
+                    } else
+                        showMsg("Favourites list is full", 1);
+                }
+                return true;
+            case 4:
                 showProperties(current_file);
                 return true;
             default:
@@ -333,7 +376,7 @@ public class FileViewer extends AppCompatActivity
             return;
         current_file.setReadable(true);
         if (!current_file.canRead()) {
-            showMsg((current_file.isDirectory()?"Folder":"File")+" is not readable", 1);
+            showMsg((current_file.isDirectory() ? "Folder" : "File") + " is not readable", 1);
             return;
         }
         recent.push(current_file);
@@ -540,6 +583,8 @@ public class FileViewer extends AppCompatActivity
             info += "\nOwner : " + file_info.substring(10, 19);
             info += "\nGroup : " + file_info.substring(19, 29);
         }
+        info += "\nReadable : " + (current_file.canRead() ? "YES" : "NO");
+        info += "\nHidden : " + (current_file.isHidden() ? "YES" : "NO");
         if (current_file.isFile()) {
             isValid = true;
             MimeTypeMap myMime = MimeTypeMap.getSingleton();
@@ -635,7 +680,7 @@ public class FileViewer extends AppCompatActivity
             } else {
                 properties_dialog.setIcon(R.drawable.file_default);
             }
-            details.setText(info + "\nMD5 : calculating...");
+            details.setText(info + "\nMD5 Checksum : calculating...");
             final Handler h = new Handler() {
                 @Override
                 public void handleMessage(Message msg) {
@@ -659,11 +704,11 @@ public class FileViewer extends AppCompatActivity
             t.start();
         } else if (current_file.isDirectory()) {
             type.setText("Directory");
-            properties_dialog.setIcon(R.drawable.folder);
             size.setText("calculating...");
             if (current_file.listFiles() != null) {
                 int n = current_file.listFiles().length;
-                info += "\n" + (n > 0 ? "Contains "+n+" Items" : "Empty Folder");
+                properties_dialog.setIcon(n > 0 ? R.drawable.folder : R.drawable.folder_empty);
+                info += "\n" + (n > 0 ? "Contains " + n + " Items" : "Empty Folder");
             }
             details.setText(info);
             final Handler h = new Handler() {
@@ -700,29 +745,11 @@ public class FileViewer extends AppCompatActivity
         if (f.exists() && f.listFiles() != null) {
             file = f;
             files = f.listFiles();
-            //Sort Alphabetically
-            Arrays.sort(files, new Comparator<File>() {
-                @Override
-                public int compare(File f1, File f2) {
-                    int res = String.CASE_INSENSITIVE_ORDER.compare(f1.getName(), f2.getName());
-                    return (res == 0 ? f1.getName().compareTo(f2.getName()) : res);
-                }
-            });
-            //Folders first
-            try {
-                Arrays.sort(files, new Comparator<File>() {
-                    @Override
-                    public int compare(File f1, File f2) {
-                        if (f1.isDirectory() && !f2.isDirectory()) return -1;
-                        else if (!f1.isDirectory() && f2.isDirectory()) return 1;
-                        else return 0;
-                    }
-                });
-            } catch (Exception e) {
-            }
+            files = sortFiles(files);
             origFiles = files.clone();
             toolbar.setTitle(file.getName());
             recentsView = false;
+            favouritesView = false;
             updateList();
             return true;
         }
@@ -738,6 +765,18 @@ public class FileViewer extends AppCompatActivity
         origFiles = files.clone();
         toolbar.setTitle("Recent Items");
         recentsView = true;
+        favouritesView = false;
+        updateList();
+    }
+
+    public void favouriteFiles() {
+        files = new File[favourites.size()];
+        files = favourites.toArray(files);
+        files = sortFiles(files);
+        origFiles = files.clone();
+        toolbar.setTitle("Favourites");
+        favouritesView = true;
+        recentsView = false;
         updateList();
     }
 
@@ -750,7 +789,7 @@ public class FileViewer extends AppCompatActivity
     }
 
     //Utility functions
-    public void restoreRecentData() {
+    public void restoreData() {
         SharedPreferences prefs = getSharedPreferences("Vudit_Recent_Items", MODE_PRIVATE);
         Collection<?> c = prefs.getAll().values();
         String paths[] = new String[c.size()];
@@ -762,26 +801,71 @@ public class FileViewer extends AppCompatActivity
             if (f.exists())
                 recent.push(f);
         }
+        prefs = getSharedPreferences("Vudit_Favourites", MODE_PRIVATE);
+        c = prefs.getAll().values();
+        paths = new String[c.size()];
+        paths = c.toArray(paths);
+        favourites.clear();
+        for (int i = 0; i < paths.length; i++) {
+            f = new File(paths[i]);
+            if (f.exists())
+                favourites.add(f);
+        }
     }
 
-    public boolean saveRecentData() {
+    public boolean saveData() {
         try {
-            SharedPreferences.Editor editor = getSharedPreferences("Vudit_Recent_Items", MODE_PRIVATE).edit();
-            editor.clear();
-            editor.commit();
-            RecentFilesStack temp = (RecentFilesStack<File>) recent.clone();
+            SharedPreferences.Editor recent_editor = getSharedPreferences("Vudit_Recent_Items", MODE_PRIVATE).edit();
+            SharedPreferences.Editor favourites_editor = getSharedPreferences("Vudit_Favourites", MODE_PRIVATE).edit();
+            recent_editor.clear();
+            recent_editor.commit();
+            favourites_editor.clear();
+            favourites_editor.commit();
             File f;
-            int n = temp.size();
-            for (int i = 0; i < n; i++) {
+            RecentFilesStack temp = (RecentFilesStack<File>) recent.clone();
+            int i, n = temp.size();
+            for (i = 0; i < n; i++) {
                 f = (File) temp.pop();
                 if (f.exists())
-                    editor.putString(f.getName(), f.getPath());
+                    recent_editor.putString(f.getName(), f.getPath());
             }
-            editor.commit();
+            recent_editor.commit();
+            n = favourites.size();
+            File arr[] = new File[n];
+            favourites.toArray(arr);
+            for (i = 0; i < n; i++) {
+                f = arr[i];
+                if (f.exists())
+                    favourites_editor.putString(f.getName(), f.getPath());
+            }
+            favourites_editor.commit();
             return true;
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public File[] sortFiles(File f[]) {   //Sort Alphabetically
+        Arrays.sort(f, new Comparator<File>() {
+            @Override
+            public int compare(File f1, File f2) {
+                int res = String.CASE_INSENSITIVE_ORDER.compare(f1.getName(), f2.getName());
+                return (res == 0 ? f1.getName().compareTo(f2.getName()) : res);
+            }
+        });
+        //Folders first
+        try {
+            Arrays.sort(f, new Comparator<File>() {
+                @Override
+                public int compare(File f1, File f2) {
+                    if (f1.isDirectory() && !f2.isDirectory()) return -1;
+                    else if (!f1.isDirectory() && f2.isDirectory()) return 1;
+                    else return 0;
+                }
+            });
+        } catch (Exception e) {
+        }
+        return f;
     }
 
     public boolean checkAndRequestPermissions() {
@@ -1026,7 +1110,11 @@ public class FileViewer extends AppCompatActivity
                     holder.icon = (ImageView) view.getChildAt(i).findViewById(R.id.icon);
                     if (current_file.isDirectory()) {
                         holder.details.setText("");
-                        holder.icon.setImageResource(R.drawable.folder);
+                        File temp[] = current_file.listFiles();
+                        int n = 0;
+                        if (temp != null)
+                            n = temp.length;
+                        holder.icon.setImageResource(n > 0 ? R.drawable.folder : R.drawable.folder_empty);
                     } else {
                         holder.details.setText(displaySize(current_file.length()));
                         String ext = extension(current_file.getName());
