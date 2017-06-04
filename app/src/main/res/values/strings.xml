@@ -6,4 +6,13 @@
     <string name="navigation_drawer_close">Close navigation drawer</string>
 
     <string name="action_settings">Settings</string>
+    <string-array name="sort_criteria">
+        <item>File Name</item>
+        <item>Date Modified</item>
+        <item>File Size</item>
+    </string-array>
+    <string-array name="sort_mode">
+        <item>Ascending</item>
+        <item>Descending</item>
+    </string-array>
 </resources>

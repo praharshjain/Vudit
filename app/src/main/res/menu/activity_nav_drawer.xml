@@ -34,8 +34,7 @@
         <item
             android:id="@+id/nav_settings"
             android:icon="@android:drawable/ic_menu_preferences"
-            android:title="Settings"
-            android:visible="false" />
+            android:title="Settings" />
     </group>
 
     <item android:title="Communicate">

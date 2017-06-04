@@ -38,7 +38,6 @@ import android.view.ContextMenu;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -46,6 +45,7 @@ import android.webkit.MimeTypeMap;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.CheckBox;
 import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageButton;
@@ -53,6 +53,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.SearchView;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -95,7 +96,48 @@ public class FileViewer extends AppCompatActivity
     ImageButton btn_play, btn_rev, btn_forward;
     SeekBar seek;
     byte data[];
-    boolean isValid;
+    int sortCriterion = 0;
+    boolean isValid, sortDesc = false, folderFirst = true, recentItems = true, hiddenFiles = true;
+    //Comparators for sorting
+    Comparator<File> byName = new Comparator<File>() {
+        @Override
+        public int compare(File f1, File f2) {
+            int res = String.CASE_INSENSITIVE_ORDER.compare(f1.getName(), f2.getName());
+            return (res == 0 ? f1.getName().compareTo(f2.getName()) : res);
+        }
+    };
+    Comparator<File> byDate = new Comparator<File>() {
+        @Override
+        public int compare(File f1, File f2) {
+            if (f1.lastModified() > f2.lastModified()) return 1;
+            else if (f1.lastModified() < f2.lastModified()) return -1;
+            else return 0;
+        }
+    };
+    Comparator<File> byDateDesc = new Comparator<File>() {
+        @Override
+        public int compare(File f1, File f2) {
+            if (f1.lastModified() > f2.lastModified()) return -1;
+            else if (f1.lastModified() < f2.lastModified()) return 1;
+            else return 0;
+        }
+    };
+    Comparator<File> bySize = new Comparator<File>() {
+        @Override
+        public int compare(File f1, File f2) {
+            if (f1.length() > f2.length()) return 1;
+            else if (f1.length() < f2.length()) return -1;
+            else return 0;
+        }
+    };
+    Comparator<File> bySizeDesc = new Comparator<File>() {
+        @Override
+        public int compare(File f1, File f2) {
+            if (f1.length() > f2.length()) return -1;
+            else if (f1.length() < f2.length()) return 1;
+            else return 0;
+        }
+    };
     //supported extensions
     String audio_ext[] = {"mp3", "oog", "wav", "mid", "m4a", "amr"};
     String image_ext[] = {"png", "jpg", "gif", "bmp", "jpeg", "webp"};
@@ -116,6 +158,7 @@ public class FileViewer extends AppCompatActivity
             finish();
             return;
         }
+        //Setup UI
         setContentView(R.layout.file_viewer);
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -141,17 +184,17 @@ public class FileViewer extends AppCompatActivity
                 openFile(files[i]);
             }
         });
-        //Check if secondary storage is available
-        String sdcard = System.getenv("SECONDARY_STORAGE");
-        if ((sdcard == null) || (sdcard.length() == 0)) {
-            sdcard = System.getenv("EXTERNAL_SDCARD_STORAGE");
-        }
-        if (sdcard != null && sdcard.length() > 0) {
-            navigationView.getMenu().findItem(R.id.nav_sdcard).setVisible(true);
-        }
+        //Restore data
         recent = new RecentFilesStack(10);
         favourites = new ArrayList<File>();
         restoreData();
+        //Check if secondary storage is available
+        String sdcard = System.getenv("SECONDARY_STORAGE");
+        if ((sdcard == null) || (sdcard.length() == 0))
+            sdcard = System.getenv("EXTERNAL_SDCARD_STORAGE");
+        if (sdcard != null && sdcard.length() > 0)
+            navigationView.getMenu().findItem(R.id.nav_sdcard).setVisible(true);
+        navigationView.getMenu().findItem(R.id.nav_recent).setVisible(recentItems);
         adap = new EfficientAdapter(getApplicationContext());
         updateFiles(Environment.getExternalStorageDirectory());
         lv.setAdapter(adap);
@@ -169,8 +212,7 @@ public class FileViewer extends AppCompatActivity
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.mainmenu, menu);
+        getMenuInflater().inflate(R.menu.mainmenu, menu);
         // Associate searchable configuration with the SearchView
         SearchManager searchManager = (SearchManager) getSystemService(Context.SEARCH_SERVICE);
         MenuItem searchItem = menu.findItem(R.id.search);
@@ -260,7 +302,62 @@ public class FileViewer extends AppCompatActivity
         } else if (id == R.id.nav_recent) {
             recentFiles();
         } else if (id == R.id.nav_settings) {
-
+            View settings_view = getLayoutInflater().inflate(R.layout.settings_view, null);
+            AlertDialog.Builder settings_dialog = new AlertDialog.Builder(FileViewer.this);
+            settings_dialog.setIcon(android.R.drawable.ic_menu_preferences);
+            settings_dialog.setTitle("Settings");
+            settings_dialog.setView(settings_view);
+            final CheckBox folders_first_checkbox = (CheckBox) settings_view.findViewById(R.id.folders_first_checkbox);
+            final CheckBox hidden_files_checkbox = (CheckBox) settings_view.findViewById(R.id.hidden_files_checkbox);
+            final CheckBox recent_items_checkbox = (CheckBox) settings_view.findViewById(R.id.recent_items_checkbox);
+            final Spinner sort_criteria = (Spinner) settings_view.findViewById(R.id.sort_criteria);
+            final Spinner sort_mode = (Spinner) settings_view.findViewById(R.id.sort_mode);
+            folders_first_checkbox.setChecked(folderFirst);
+            hidden_files_checkbox.setChecked(hiddenFiles);
+            recent_items_checkbox.setChecked(recentItems);
+            sort_criteria.setSelection(sortCriterion);
+            sort_mode.setSelection(sortDesc ? 1 : 0);
+            settings_dialog.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    folderFirst = folders_first_checkbox.isChecked();
+                    hiddenFiles = hidden_files_checkbox.isChecked();
+                    recentItems = recent_items_checkbox.isChecked();
+                    String sortBy = sort_criteria.getSelectedItem().toString();
+                    sortDesc = sort_mode.getSelectedItem().toString().equals("Descending");
+                    String criteria[] = getResources().getStringArray(R.array.sort_criteria);
+                    for (i = 0; i < criteria.length; i++) {
+                        if (sortBy.equals(criteria[i])) {
+                            sortCriterion = i;
+                            break;
+                        }
+                    }
+                    NavigationView nav = (NavigationView) findViewById(R.id.nav_view);
+                    nav.getMenu().findItem(R.id.nav_recent).setVisible(recentItems);
+                    if (recentsView) {
+                        if (recentItems)
+                            recentFiles();
+                        else {
+                            recentsView = false;
+                            updateFiles(Environment.getExternalStorageDirectory());
+                        }
+                    } else if (favouritesView)
+                        favouriteFiles();
+                    else
+                        updateFiles(file);
+                    showMsg("Settings saved", 1);
+                    dialogInterface.dismiss();
+                    dialogInterface.cancel();
+                }
+            });
+            settings_dialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    dialogInterface.dismiss();
+                    dialogInterface.cancel();
+                }
+            });
+            settings_dialog.show();
         } else if (id == R.id.nav_about) {
             AlertDialog.Builder about_dialog = new AlertDialog.Builder(FileViewer.this);
             about_dialog.setIcon(R.mipmap.ic_launcher);
@@ -353,6 +450,7 @@ public class FileViewer extends AppCompatActivity
                     int i = favourites.indexOf(current_file);
                     if (i >= 0) {
                         favourites.remove(i);
+                        favouriteFiles();
                         showMsg(current_file.getName() + " removed from Favourites", 1);
                     }
                 } else {
@@ -403,8 +501,7 @@ public class FileViewer extends AppCompatActivity
                     e.printStackTrace();
                 }
                 if (isValid) {
-                    LayoutInflater inflater = getLayoutInflater();
-                    final View player = inflater.inflate(R.layout.music_player, null);
+                    final View player = getLayoutInflater().inflate(R.layout.music_player, null);
                     player.findViewById(R.id.icon);
                     btn_play = (ImageButton) player.findViewById(R.id.btn_play);
                     btn_rev = (ImageButton) player.findViewById(R.id.btn_rev);
@@ -510,9 +607,8 @@ public class FileViewer extends AppCompatActivity
                     showMsg("Invalid music file", 1);
                 }
             } else if (Arrays.asList(image_ext).contains(ext)) {
-                LayoutInflater inflater = getLayoutInflater();
                 AlertDialog.Builder preview_dialog = new AlertDialog.Builder(new ContextThemeWrapper(FileViewer.this, android.R.style.Theme_Black));
-                View image_view = inflater.inflate(R.layout.image_viewer, null);
+                View image_view = getLayoutInflater().inflate(R.layout.image_viewer, null);
                 final ImageView preview = (ImageView) image_view.findViewById(R.id.preview);
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inJustDecodeBounds = true;
@@ -559,13 +655,12 @@ public class FileViewer extends AppCompatActivity
     }
 
     public void showProperties(final File current_file) {
-        LayoutInflater inflater = getLayoutInflater();
         MediaPlayer mp = new MediaPlayer();
         MediaMetadataRetriever meta = new MediaMetadataRetriever();
         String info = "", bitrate = "";
         int duration;
         AlertDialog.Builder properties_dialog = new AlertDialog.Builder(FileViewer.this);
-        View properties_view = inflater.inflate(R.layout.properties_view, null);
+        View properties_view = getLayoutInflater().inflate(R.layout.properties_view, null);
         TextView name = (TextView) properties_view.findViewById(R.id.name);
         TextView type = (TextView) properties_view.findViewById(R.id.type);
         TextView time = (TextView) properties_view.findViewById(R.id.time);
@@ -790,7 +885,13 @@ public class FileViewer extends AppCompatActivity
 
     //Utility functions
     public void restoreData() {
-        SharedPreferences prefs = getSharedPreferences("Vudit_Recent_Items", MODE_PRIVATE);
+        SharedPreferences prefs = getSharedPreferences("Vudit_Settings", MODE_PRIVATE);
+        folderFirst = prefs.getBoolean("FoldersFirst", true);
+        hiddenFiles = prefs.getBoolean("ShowHidden", true);
+        recentItems = prefs.getBoolean("ShowRecents", true);
+        sortDesc = prefs.getBoolean("SortDesc", false);
+        sortCriterion = prefs.getInt("SortCriterion", 0);
+        prefs = getSharedPreferences("Vudit_Recent_Items", MODE_PRIVATE);
         Collection<?> c = prefs.getAll().values();
         String paths[] = new String[c.size()];
         paths = c.toArray(paths);
@@ -817,10 +918,17 @@ public class FileViewer extends AppCompatActivity
         try {
             SharedPreferences.Editor recent_editor = getSharedPreferences("Vudit_Recent_Items", MODE_PRIVATE).edit();
             SharedPreferences.Editor favourites_editor = getSharedPreferences("Vudit_Favourites", MODE_PRIVATE).edit();
+            SharedPreferences.Editor settings_editor = getSharedPreferences("Vudit_Settings", MODE_PRIVATE).edit();
+            settings_editor.clear();
+            settings_editor.commit();
+            settings_editor.putBoolean("FoldersFirst", folderFirst);
+            settings_editor.putBoolean("ShowHidden", hiddenFiles);
+            settings_editor.putBoolean("ShowRecents", recentItems);
+            settings_editor.putBoolean("SortDesc", sortDesc);
+            settings_editor.putInt("SortCriterion", sortCriterion);
+            settings_editor.commit();
             recent_editor.clear();
             recent_editor.commit();
-            favourites_editor.clear();
-            favourites_editor.commit();
             File f;
             RecentFilesStack temp = (RecentFilesStack<File>) recent.clone();
             int i, n = temp.size();
@@ -830,6 +938,8 @@ public class FileViewer extends AppCompatActivity
                     recent_editor.putString(f.getName(), f.getPath());
             }
             recent_editor.commit();
+            favourites_editor.clear();
+            favourites_editor.commit();
             n = favourites.size();
             File arr[] = new File[n];
             favourites.toArray(arr);
@@ -845,25 +955,47 @@ public class FileViewer extends AppCompatActivity
         }
     }
 
-    public File[] sortFiles(File f[]) {   //Sort Alphabetically
-        Arrays.sort(f, new Comparator<File>() {
-            @Override
-            public int compare(File f1, File f2) {
-                int res = String.CASE_INSENSITIVE_ORDER.compare(f1.getName(), f2.getName());
-                return (res == 0 ? f1.getName().compareTo(f2.getName()) : res);
+    public File[] sortFiles(File f[]) {
+        int i, n;
+        if (!hiddenFiles) {
+            ArrayList<File> temp = new ArrayList<File>();
+            n = f.length;
+            for (i = 0; i < n; i++) {
+                if (!f[i].isHidden())
+                    temp.add(f[i]);
             }
-        });
-        //Folders first
-        try {
-            Arrays.sort(f, new Comparator<File>() {
-                @Override
-                public int compare(File f1, File f2) {
-                    if (f1.isDirectory() && !f2.isDirectory()) return -1;
-                    else if (!f1.isDirectory() && f2.isDirectory()) return 1;
-                    else return 0;
+            f = new File[temp.size()];
+            f = temp.toArray(f);
+        }
+        //Sort Alphabetically
+        Arrays.sort(f, byName);
+        if (sortCriterion == 1)
+            Arrays.sort(f, sortDesc ? byDateDesc : byDate);
+        else if (sortCriterion == 2)
+            Arrays.sort(f, sortDesc ? bySizeDesc : bySize);
+        else {
+            if (sortDesc) {
+                File temp;
+                n = f.length;
+                for (i = 0; i < n / 2; i++) {
+                    temp = f[i];
+                    f[i] = f[n - i - 1];
+                    f[n - i - 1] = temp;
                 }
-            });
-        } catch (Exception e) {
+            }
+        }
+        if (folderFirst) {
+            try {
+                Arrays.sort(f, new Comparator<File>() {
+                    @Override
+                    public int compare(File f1, File f2) {
+                        if (f1.isDirectory() && !f2.isDirectory()) return -1;
+                        else if (!f1.isDirectory() && f2.isDirectory()) return 1;
+                        else return 0;
+                    }
+                });
+            } catch (Exception e) {
+            }
         }
         return f;
     }
