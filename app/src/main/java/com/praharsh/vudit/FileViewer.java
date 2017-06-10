@@ -361,8 +361,8 @@ public class FileViewer extends AppCompatActivity
         } else if (id == R.id.nav_about) {
             AlertDialog.Builder about_dialog = new AlertDialog.Builder(FileViewer.this);
             about_dialog.setIcon(R.mipmap.ic_launcher);
-            about_dialog.setTitle("About");
-            about_dialog.setMessage("Vudit\nVersion 1.0\nBy - Praharsh Jain");
+            about_dialog.setTitle("Vudit");
+            about_dialog.setMessage("Version 1.0\nBy - Praharsh Jain\npraharshsamria@gmail.com");
             about_dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
@@ -372,7 +372,14 @@ public class FileViewer extends AppCompatActivity
             });
             about_dialog.show();
         } else if (id == R.id.nav_feedback) {
-
+            Intent email = new Intent(Intent.ACTION_SENDTO);
+            email.setData(Uri.parse("mailto:"));
+            String emailadd[] = {"praharshsamria@gmail.com"};
+            email.putExtra(Intent.EXTRA_EMAIL, emailadd);
+            email.putExtra(Intent.EXTRA_SUBJECT, "Vudit Feedback");
+            if (email.resolveActivity(getPackageManager()) != null) {
+                startActivity(email);
+            }
         }
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
