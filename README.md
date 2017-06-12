@@ -36,6 +36,9 @@ Screenshots
 ----------------
 <img src="https://github.com/praharshjain/Vudit/blob/master/screenshots/1.png" width="250"> &nbsp;&nbsp;&nbsp;<img src="https://github.com/praharshjain/Vudit/blob/master/screenshots/2.png" width="250"> &nbsp;&nbsp;&nbsp;<img src="https://github.com/praharshjain/Vudit/blob/master/screenshots/3.png" width="250"> &nbsp;&nbsp;&nbsp;<img src="https://github.com/praharshjain/Vudit/blob/master/screenshots/4.png" width="250"> &nbsp;&nbsp;&nbsp;<img src="https://github.com/praharshjain/Vudit/blob/master/screenshots/5.png" width="250">
 
+Usage
+----------------
+Open project in Android Studio and build from source.
 
 License
 ----------------
