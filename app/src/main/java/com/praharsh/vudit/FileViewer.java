@@ -199,6 +199,7 @@ public class FileViewer extends AppCompatActivity
         updateFiles(Environment.getExternalStorageDirectory());
         lv.setAdapter(adap);
         lv.setOnScrollListener(this);
+        lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
         in = getIntent();
         if (Intent.ACTION_VIEW.equals(in.getAction()) && in.getType() != null)
             openFile(new File(in.getData().getPath()));
@@ -412,8 +413,17 @@ public class FileViewer extends AppCompatActivity
                 menu.add(Menu.NONE, 1, Menu.NONE, "Open with default system action");
                 menu.add(Menu.NONE, 2, Menu.NONE, "Share");
             }
-            menu.add(Menu.NONE, 3, Menu.NONE, favouritesView ? "Remove from Favourites" : "Add to Favourites");
-            menu.add(Menu.NONE, 4, Menu.NONE, "Properties");
+            if(recentsView) {
+                menu.add(Menu.NONE, 3, Menu.NONE, "Remove from Recent Items");
+            }
+            else if(favouritesView) {
+                menu.add(Menu.NONE, 3, Menu.NONE, "Open parent directory");
+            }
+            else {
+                menu.add(Menu.NONE, 3, Menu.NONE, "Delete");
+            }
+            menu.add(Menu.NONE, 4, Menu.NONE, favouritesView ? "Remove from Favourites" : "Add to Favourites");
+            menu.add(Menu.NONE, 5, Menu.NONE, "Properties");
         }
     }
 
@@ -453,6 +463,34 @@ public class FileViewer extends AppCompatActivity
                 }
                 return true;
             case 3:
+                if(favouritesView) {
+                    File f = current_file.getParentFile();
+                    if(f!=null && f.exists()) {
+                        updateFiles(f);
+                    }
+                    else {
+                        showMsg("Parent directory can not be opened", 1);
+                    }
+                }
+                else if(recentsView) {
+                    int i = recent.indexOf(current_file);
+                    if(i>=0) {
+                        recent.remove(i);
+                        recentFiles();
+                        showMsg(current_file.getName() + " removed from Recent Items", 1);
+                    }
+                }
+                else {
+                    if(deleteFiles(current_file)) {
+                        showMsg(current_file.getName() + " successfully deleted", 1);
+                        updateFiles(current_file.getParentFile());
+                    }
+                    else {
+                        showMsg(current_file.getName() + " could not be deleted", 1);
+                    }
+                }
+                return true;
+            case 4:
                 if (favouritesView) {
                     int i = favourites.indexOf(current_file);
                     if (i >= 0) {
@@ -468,7 +506,7 @@ public class FileViewer extends AppCompatActivity
                         showMsg("Favourites list is full", 1);
                 }
                 return true;
-            case 4:
+            case 5:
                 showProperties(current_file);
                 return true;
             default:
@@ -858,6 +896,22 @@ public class FileViewer extends AppCompatActivity
         return false;
     }
 
+    public boolean deleteFiles(File f) {
+        if(f==null || !f.exists())
+            return false;
+        f.setWritable(true);
+        if(f.isDirectory()) {
+            File arr[] = f.listFiles();
+            int i,n=arr.length;
+            boolean deleted = true;
+            for(i=0;i<n;i++) {
+                deleted &= deleteFiles(arr[i]);
+            }
+            return deleted & f.delete();
+        }
+        else return f.delete();
+    }
+
     public void recentFiles() {
         RecentFilesStack temp = (RecentFilesStack<File>) recent.clone();
         files = new File[temp.size()];
@@ -1010,9 +1064,13 @@ public class FileViewer extends AppCompatActivity
     public boolean checkAndRequestPermissions() {
         if (SDK_INT >= Build.VERSION_CODES.M) {
             int permissionStorage = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
+            int permissionWriteStorage = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
             List<String> listPermissionsNeeded = new ArrayList<>();
             if (permissionStorage != PackageManager.PERMISSION_GRANTED) {
                 listPermissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+            }
+            if (permissionWriteStorage != PackageManager.PERMISSION_GRANTED) {
+                listPermissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
             }
             if (!listPermissionsNeeded.isEmpty()) {
                 ActivityCompat.requestPermissions(this, listPermissionsNeeded.toArray(new String[listPermissionsNeeded.size()]), REQUEST_ID_MULTIPLE_PERMISSIONS);
