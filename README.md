@@ -7,6 +7,7 @@ Features
 * Files listing
 * Image viewer, music and video player
 * PDF viewer
+* HTML viewer
 * Code syntax highligher
 * Save recently viewed and favourite items
 
@@ -16,7 +17,7 @@ Supported file types and extensions -
 
     Audio files - "mp3", "oog", "wav", "mid", "m4a", "amr"  
     
-    Image files - "png", "jpg", "gif", "bmp", "jpeg", "webp"  
+    Image files - "png", "jpg", "gif", "bmp", "jpeg", "webp", "svg"  
     
     Video files - "mp4", "3gp", "mkv", "webm"
 
