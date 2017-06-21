@@ -6,6 +6,7 @@
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <application
         android:allowBackup="true"
         android:hardwareAccelerated="true"
@@ -150,6 +151,11 @@
                     android:mimeType="*/*"
                     android:pathPattern=".*\\.webp"
                     android:scheme="file" />
+                <data
+                    android:host="*"
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.svg"
+                    android:scheme="file" />
                 <!-- Videos -->
                 <data
                     android:host="*"
@@ -236,6 +242,13 @@
             android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
             android:name=".DOCViewer"
+            android:alwaysRetainTaskState="true"
+            android:hardwareAccelerated="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="DOCViewer"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity
+            android:name=".HTMLViewer"
             android:alwaysRetainTaskState="true"
             android:hardwareAccelerated="true"
             android:icon="@mipmap/ic_launcher"

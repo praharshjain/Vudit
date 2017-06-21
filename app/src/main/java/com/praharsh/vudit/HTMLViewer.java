@@ -1,28 +1,19 @@
 package com.praharsh.vudit;
 
-import android.content.Context;
 import android.graphics.Bitmap;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.net.URLEncoder;
-
-public class TextViewer extends AppCompatActivity {
+public class HTMLViewer extends AppCompatActivity {
     WebView wv;
-    String file_text;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +35,8 @@ public class TextViewer extends AppCompatActivity {
             }
         });
         WebSettings settings = wv.getSettings();
+        settings.setSupportZoom(true);
+        settings.setDisplayZoomControls(true);
         settings.setJavaScriptEnabled(true);
         settings.setCacheMode(WebSettings.LOAD_NO_CACHE);
         settings.setDomStorageEnabled(true);
@@ -58,27 +51,7 @@ public class TextViewer extends AppCompatActivity {
         wv.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
         wv.setScrollbarFadingEnabled(true);
         String file_path = getIntent().getStringExtra("file");
-        File file = new File(Uri.parse(file_path).getPath());
-        try {
-            file_path = URLEncoder.encode(file_path, "UTF-8");
-        } catch (Exception e) {
-        }
-        wv.loadUrl("file:///android_asset/textviewer/index.html?file=" + file_path);
-        StringBuilder text = new StringBuilder();
-        try {
-            BufferedReader br = new BufferedReader(new FileReader(file));
-            String line;
-            while ((line = br.readLine()) != null) {
-                text.append(line);
-                text.append('\n');
-            }
-            br.close();
-            file_text = text.toString();
-            wv.addJavascriptInterface(new WebAppInterface(this, file_text), "Android");
-            wv.loadUrl("javascript:showFile('" + file_text + "')");
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        wv.loadUrl("file://" + file_path);
     }
 
     @Override
@@ -107,21 +80,6 @@ public class TextViewer extends AppCompatActivity {
         @Override
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
-        }
-    }
-
-    class WebAppInterface {
-        Context mContext;
-        String text;
-
-        WebAppInterface(Context c, String file_text) {
-            mContext = c;
-            text = file_text;
-        }
-
-        @JavascriptInterface
-        public String getText() {
-            return text;
         }
     }
 }

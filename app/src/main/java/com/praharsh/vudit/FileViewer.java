@@ -142,6 +142,7 @@ public class FileViewer extends AppCompatActivity
     String audio_ext[] = {"mp3", "oog", "wav", "mid", "m4a", "amr"};
     String image_ext[] = {"png", "jpg", "gif", "bmp", "jpeg", "webp"};
     String video_ext[] = {"mp4", "3gp", "mkv", "webm"};
+    String web_ext[] = {"htm", "html", "js", "xml"};
     String opendoc_ext[] = {"odt", "ott", "odp", "otp", "ods", "ots", "fodt", "fods", "fodp"};
     String txt_ext[] = {"ascii", "asm", "awk", "bash", "bat", "bf", "bsh", "c", "cert", "cgi", "clj", "conf", "cpp", "cs", "css", "csv", "elr", "go", "h", "hs", "htaccess", "htm", "html", "ini", "java", "js", "json", "key", "lisp", "log", "lua", "md", "mkdn", "pem", "php", "pl", "py", "rb", "readme", "scala", "sh", "sql", "srt", "sub", "tex", "txt", "vb", "vbs", "vhdl", "wollok", "xml", "xsd", "xsl", "yaml", "iml", "gitignore", "gradle"};
     //only icon
@@ -199,7 +200,6 @@ public class FileViewer extends AppCompatActivity
         updateFiles(Environment.getExternalStorageDirectory());
         lv.setAdapter(adap);
         lv.setOnScrollListener(this);
-        lv.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
         in = getIntent();
         if (Intent.ACTION_VIEW.equals(in.getAction()) && in.getType() != null)
             openFile(new File(in.getData().getPath()));
@@ -411,19 +411,20 @@ public class FileViewer extends AppCompatActivity
                 menu.add(Menu.NONE, 1, Menu.NONE, "Open");
             } else {
                 menu.add(Menu.NONE, 1, Menu.NONE, "Open with default system action");
-                menu.add(Menu.NONE, 2, Menu.NONE, "Share");
+                String ext = extension(current_file.getName());
+                if (Arrays.asList(web_ext).contains(ext))
+                    menu.add(Menu.NONE, 2, Menu.NONE, "Preview");
+                menu.add(Menu.NONE, 3, Menu.NONE, "Share");
             }
-            if(recentsView) {
-                menu.add(Menu.NONE, 3, Menu.NONE, "Remove from Recent Items");
+            if (recentsView) {
+                menu.add(Menu.NONE, 4, Menu.NONE, "Remove from Recent Items");
+            } else if (favouritesView) {
+                menu.add(Menu.NONE, 4, Menu.NONE, "Open parent directory");
+            } else {
+                menu.add(Menu.NONE, 4, Menu.NONE, "Delete");
             }
-            else if(favouritesView) {
-                menu.add(Menu.NONE, 3, Menu.NONE, "Open parent directory");
-            }
-            else {
-                menu.add(Menu.NONE, 3, Menu.NONE, "Delete");
-            }
-            menu.add(Menu.NONE, 4, Menu.NONE, favouritesView ? "Remove from Favourites" : "Add to Favourites");
-            menu.add(Menu.NONE, 5, Menu.NONE, "Properties");
+            menu.add(Menu.NONE, 5, Menu.NONE, favouritesView ? "Remove from Favourites" : "Add to Favourites");
+            menu.add(Menu.NONE, 6, Menu.NONE, "Properties");
         }
     }
 
@@ -450,6 +451,11 @@ public class FileViewer extends AppCompatActivity
                 }
                 return true;
             case 2:
+                Intent in = new Intent(FileViewer.this, HTMLViewer.class);
+                in.putExtra("file", current_file.getPath());
+                startActivity(in);
+                return true;
+            case 3:
                 Intent share = new Intent();
                 share.setAction(Intent.ACTION_SEND);
                 MimeTypeMap myMime = MimeTypeMap.getSingleton();
@@ -462,35 +468,31 @@ public class FileViewer extends AppCompatActivity
                     showMsg("No handler available to share", 1);
                 }
                 return true;
-            case 3:
-                if(favouritesView) {
+            case 4:
+                if (favouritesView) {
                     File f = current_file.getParentFile();
-                    if(f!=null && f.exists()) {
+                    if (f != null && f.exists()) {
                         updateFiles(f);
-                    }
-                    else {
+                    } else {
                         showMsg("Parent directory can not be opened", 1);
                     }
-                }
-                else if(recentsView) {
+                } else if (recentsView) {
                     int i = recent.indexOf(current_file);
-                    if(i>=0) {
+                    if (i >= 0) {
                         recent.remove(i);
                         recentFiles();
                         showMsg(current_file.getName() + " removed from Recent Items", 1);
                     }
-                }
-                else {
-                    if(deleteFiles(current_file)) {
+                } else {
+                    if (deleteFiles(current_file)) {
                         showMsg(current_file.getName() + " successfully deleted", 1);
                         updateFiles(current_file.getParentFile());
-                    }
-                    else {
+                    } else {
                         showMsg(current_file.getName() + " could not be deleted", 1);
                     }
                 }
                 return true;
-            case 4:
+            case 5:
                 if (favouritesView) {
                     int i = favourites.indexOf(current_file);
                     if (i >= 0) {
@@ -506,7 +508,7 @@ public class FileViewer extends AppCompatActivity
                         showMsg("Favourites list is full", 1);
                 }
                 return true;
-            case 5:
+            case 6:
                 showProperties(current_file);
                 return true;
             default:
@@ -534,6 +536,10 @@ public class FileViewer extends AppCompatActivity
                 in = new Intent(FileViewer.this, DOCViewer.class);
                 in.putExtra("file", current_file.getPath());
                 in.putExtra("isPDF", true);
+                startActivity(in);
+            } else if (ext.equals("svg")) {
+                Intent in = new Intent(FileViewer.this, HTMLViewer.class);
+                in.putExtra("file", current_file.getPath());
                 startActivity(in);
             } else if (Arrays.asList(audio_ext).contains(ext)) {
                 try {
@@ -897,19 +903,18 @@ public class FileViewer extends AppCompatActivity
     }
 
     public boolean deleteFiles(File f) {
-        if(f==null || !f.exists())
+        if (f == null || !f.exists())
             return false;
         f.setWritable(true);
-        if(f.isDirectory()) {
+        if (f.isDirectory()) {
             File arr[] = f.listFiles();
-            int i,n=arr.length;
+            int i, n = arr.length;
             boolean deleted = true;
-            for(i=0;i<n;i++) {
+            for (i = 0; i < n; i++) {
                 deleted &= deleteFiles(arr[i]);
             }
             return deleted & f.delete();
-        }
-        else return f.delete();
+        } else return f.delete();
     }
 
     public void recentFiles() {
@@ -1324,6 +1329,8 @@ public class FileViewer extends AppCompatActivity
                             holder.icon.setImageDrawable(pi.applicationInfo.loadIcon(pm));
                         } else if (ext.equals("pdf")) {
                             holder.icon.setImageResource(R.drawable.file_pdf);
+                        } else if (ext.equals("svg")) {
+                            holder.icon.setImageResource(R.drawable.file_svg);
                         } else if (ext.equals("csv")) {
                             holder.icon.setImageResource(R.drawable.file_csv);
                         } else if (Arrays.asList(audio_ext).contains(ext)) {
