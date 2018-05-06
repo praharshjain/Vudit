@@ -1280,7 +1280,12 @@ public class FileViewer extends AppCompatActivity
             holder.date.setText(format.format(current_file.lastModified()));
             if (current_file.isFile()) {
                 holder.details.setText(displaySize(current_file.length()));
-            } else {
+            } else if(current_file.isDirectory()) {
+                File temp[] = current_file.listFiles();
+                int n = (temp != null ? temp.length : 0);
+                holder.details.setText(n + " items");
+            }
+            else {
                 holder.details.setText("");
             }
             if (!mBusy) {
@@ -1329,9 +1334,8 @@ public class FileViewer extends AppCompatActivity
                     if (current_file.isDirectory()) {
                         holder.details.setText("");
                         File temp[] = current_file.listFiles();
-                        int n = 0;
-                        if (temp != null)
-                            n = temp.length;
+                        int n = (temp != null ? temp.length : 0);
+                        holder.details.setText(n + " items");
                         holder.icon.setImageResource(n > 0 ? R.drawable.folder : R.drawable.folder_empty);
                     } else {
                         holder.details.setText(displaySize(current_file.length()));
