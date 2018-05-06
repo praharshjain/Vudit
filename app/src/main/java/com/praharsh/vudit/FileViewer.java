@@ -483,13 +483,29 @@ public class FileViewer extends AppCompatActivity
                         recentFiles();
                         showMsg(current_file.getName() + " removed from Recent Items", 1);
                     }
-                } else {
-                    if (deleteFiles(current_file)) {
-                        showMsg(current_file.getName() + " successfully deleted", 1);
-                        updateFiles(current_file.getParentFile());
-                    } else {
-                        showMsg(current_file.getName() + " could not be deleted", 1);
+                } else if (deleteFiles(current_file)) {
+                    showMsg(current_file.getName() + " successfully deleted", 1);
+                    updateFiles(current_file.getParentFile());
+                    //update recents and favorites
+                    int i, n = favourites.size();
+                    File arr[] = new File[n];
+                    favourites.toArray(arr);
+                    favourites.clear();
+                    for (i = 0; i < n; i++) {
+                        File f = arr[i];
+                        if (f.exists())
+                            favourites.add(f);
                     }
+                    RecentFilesStack temp = (RecentFilesStack<File>) recent.clone();
+                    n = temp.size();
+                    recent.clear();
+                    for (i = 0; i < n; i++) {
+                        File f = (File) temp.get(i);
+                        if (f.exists())
+                            recent.push(f);
+                    }
+                } else {
+                    showMsg(current_file.getName() + " could not be deleted", 1);
                 }
                 return true;
             case 5:
