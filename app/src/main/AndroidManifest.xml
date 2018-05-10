@@ -226,6 +226,13 @@
             </intent-filter>
         </activity>
         <activity
+            android:name=".WebViewBaseActivity"
+            android:alwaysRetainTaskState="true"
+            android:hardwareAccelerated="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="WebView"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity
             android:name=".VideoPlayer"
             android:alwaysRetainTaskState="true"
             android:hardwareAccelerated="true"
@@ -252,7 +259,7 @@
             android:alwaysRetainTaskState="true"
             android:hardwareAccelerated="true"
             android:icon="@mipmap/ic_launcher"
-            android:label="DOCViewer"
+            android:label="HTMLViewer"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
     </application>
 </manifest>
