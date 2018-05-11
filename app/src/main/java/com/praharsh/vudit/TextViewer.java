@@ -8,7 +8,8 @@ import android.webkit.JavascriptInterface;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.net.URLEncoder;
+
+import static android.net.Uri.encode;
 
 public class TextViewer extends WebViewBaseActivity {
     String file_text;
@@ -19,7 +20,7 @@ public class TextViewer extends WebViewBaseActivity {
         String file_path = getIntent().getStringExtra("file");
         File file = new File(Uri.parse(file_path).getPath());
         try {
-            file_path = URLEncoder.encode(file_path, "UTF-8");
+            file_path = encode("file://" + file_path, "UTF-8");
         } catch (Exception e) {
         }
         wv.loadUrl("file:///android_asset/textviewer/index.html?file=" + file_path);
