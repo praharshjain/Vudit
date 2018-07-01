@@ -261,5 +261,12 @@
             android:icon="@mipmap/ic_launcher"
             android:label="HTMLViewer"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity
+            android:name=".SQLiteViewer"
+            android:alwaysRetainTaskState="true"
+            android:hardwareAccelerated="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="SQLiteViewer"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
     </application>
 </manifest>

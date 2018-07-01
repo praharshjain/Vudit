@@ -6,7 +6,7 @@ android {
 
     defaultConfig {
         applicationId "com.praharsh.vudit"
-        minSdkVersion 7
+        minSdkVersion 11
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
@@ -14,6 +14,7 @@ android {
     buildTypes {
         release {
             minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }

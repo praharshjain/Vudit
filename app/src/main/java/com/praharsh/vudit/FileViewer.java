@@ -57,9 +57,12 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -69,9 +72,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipInputStream;
 
 import static android.os.Build.VERSION.SDK_INT;
 
@@ -95,6 +102,7 @@ public class FileViewer extends AppCompatActivity
     ImageView album_art, icon;
     ImageButton btn_play, btn_rev, btn_forward;
     SeekBar seek;
+    String tempPath = Environment.getExternalStorageDirectory().getPath() + "/Vudit/temp/";
     byte data[];
     int sortCriterion = 0;
     boolean isValid, sortDesc = false, folderFirst = true, recentItems = true, hiddenFiles = true;
@@ -208,6 +216,7 @@ public class FileViewer extends AppCompatActivity
     @Override
     protected void onStop() {
         saveData();
+        freeMemory(true);
         super.onStop();
     }
 
@@ -465,6 +474,7 @@ public class FileViewer extends AppCompatActivity
                 try {
                     startActivity(share);
                 } catch (Exception e) {
+                    e.printStackTrace();
                     showMsg("No handler available to share", 1);
                 }
                 return true;
@@ -483,29 +493,50 @@ public class FileViewer extends AppCompatActivity
                         recentFiles();
                         showMsg(current_file.getName() + " removed from Recent Items", 1);
                     }
-                } else if (deleteFiles(current_file)) {
-                    showMsg(current_file.getName() + " successfully deleted", 1);
-                    updateFiles(current_file.getParentFile());
-                    //update recents and favorites
-                    int i, n = favourites.size();
-                    File arr[] = new File[n];
-                    favourites.toArray(arr);
-                    favourites.clear();
-                    for (i = 0; i < n; i++) {
-                        File f = arr[i];
-                        if (f.exists())
-                            favourites.add(f);
-                    }
-                    RecentFilesStack temp = (RecentFilesStack<File>) recent.clone();
-                    n = temp.size();
-                    recent.clear();
-                    for (i = 0; i < n; i++) {
-                        File f = (File) temp.get(i);
-                        if (f.exists())
-                            recent.push(f);
-                    }
                 } else {
-                    showMsg(current_file.getName() + " could not be deleted", 1);
+                    AlertDialog.Builder confirmation_dialog = new AlertDialog.Builder(FileViewer.this);
+                    confirmation_dialog.setIcon(android.R.drawable.ic_delete);
+                    confirmation_dialog.setTitle("Delete");
+                    confirmation_dialog.setMessage("Are you sure you want to delete " + current_file.getName() + "?");
+                    confirmation_dialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int btn) {
+                            if (deleteFiles(current_file)) {
+                                showMsg(current_file.getName() + " successfully deleted", 1);
+                                updateFiles(current_file.getParentFile());
+                                //update recents and favorites
+                                int i, n = favourites.size();
+                                File arr[] = new File[n];
+                                favourites.toArray(arr);
+                                favourites.clear();
+                                for (i = 0; i < n; i++) {
+                                    File f = arr[i];
+                                    if (f.exists())
+                                        favourites.add(f);
+                                }
+                                RecentFilesStack temp = (RecentFilesStack<File>) recent.clone();
+                                n = temp.size();
+                                recent.clear();
+                                for (i = 0; i < n; i++) {
+                                    File f = (File) temp.get(i);
+                                    if (f.exists())
+                                        recent.push(f);
+                                }
+                            } else {
+                                showMsg(current_file.getName() + " could not be deleted", 1);
+                            }
+                            dialogInterface.dismiss();
+                            dialogInterface.cancel();
+                        }
+                    });
+                    confirmation_dialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            dialogInterface.dismiss();
+                            dialogInterface.cancel();
+                        }
+                    });
+                    confirmation_dialog.show();
                 }
                 return true;
             case 5:
@@ -541,6 +572,7 @@ public class FileViewer extends AppCompatActivity
             return;
         }
         recent.push(current_file);
+        freeMemory(false);
         final MediaPlayer mp = new MediaPlayer();
         final MediaMetadataRetriever meta = new MediaMetadataRetriever();
         if (current_file.isDirectory()) {
@@ -553,6 +585,20 @@ public class FileViewer extends AppCompatActivity
                 in.putExtra("file", current_file.getPath());
                 in.putExtra("isPDF", true);
                 startActivity(in);
+            } else if (ext.equals("sqlite")) {
+                in = new Intent(FileViewer.this, SQLiteViewer.class);
+                in.putExtra("file", current_file.getPath());
+                startActivity(in);
+            } else if (ext.equals("zip")) {
+                String dirName = unpackZip(current_file, new File(tempPath));
+                if(dirName.length() > 0) {
+                    File f = new File(tempPath + dirName);
+                    updateFiles(f);
+                }
+                else {
+                    showMsg("Zip file is not valid", Toast.LENGTH_LONG);
+                    freeMemory(true);
+                }
             } else if (ext.equals("svg")) {
                 Intent in = new Intent(FileViewer.this, HTMLViewer.class);
                 in.putExtra("file", current_file.getPath());
@@ -1033,6 +1079,7 @@ public class FileViewer extends AppCompatActivity
             favourites_editor.commit();
             return true;
         } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }
@@ -1077,6 +1124,7 @@ public class FileViewer extends AppCompatActivity
                     }
                 });
             } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         return f;
@@ -1101,6 +1149,53 @@ public class FileViewer extends AppCompatActivity
             }
         }
         return true;
+    }
+
+    public static String unpackZip(File zipFile, File targetDirectory) {
+        String dirName = "";
+        try {
+            ZipInputStream zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(zipFile)));
+            ZipEntry ze;
+            int count = -2;
+            byte[] buffer = new byte[8192];
+            while ((ze = zis.getNextEntry()) != null) {
+                if(count == -2) {
+                    dirName = ze.getName().split("/")[0];
+                }
+                File file = new File(targetDirectory, ze.getName());
+                File dir = ze.isDirectory() ? file : file.getParentFile();
+                if (!dir.isDirectory() && !dir.mkdirs()) {
+                    return "";
+                }
+                if (ze.isDirectory()) {
+                    continue;
+                }
+                FileOutputStream fout = new FileOutputStream(file);
+                while ((count = zis.read(buffer)) != -1) {
+                    fout.write(buffer, 0, count);
+                }
+                // restore time as well
+                long time = ze.getTime();
+                if (time > 0) {
+                    file.setLastModified(time);
+                }
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+        return dirName;
+    }
+
+    public void freeMemory(boolean deleteTempFiles) {
+        //remove temp files
+        if(deleteTempFiles) {
+            deleteFiles(new File(tempPath));
+        }
+        //try to free ram
+        System.runFinalization();
+        Runtime.getRuntime().gc();
+        System.gc();
     }
 
     public void showMsg(String msg, int mode) {
@@ -1163,6 +1258,7 @@ public class FileViewer extends AppCompatActivity
             pm.getPackageInfo(uri, PackageManager.GET_ACTIVITIES);
             return true;
         } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
             return false;
         }
     }
@@ -1189,6 +1285,7 @@ public class FileViewer extends AppCompatActivity
             }
             return hexString.toString().toUpperCase();
         } catch (Exception e) {
+            e.printStackTrace();
             return "";
         }
     }
@@ -1280,12 +1377,11 @@ public class FileViewer extends AppCompatActivity
             holder.date.setText(format.format(current_file.lastModified()));
             if (current_file.isFile()) {
                 holder.details.setText(displaySize(current_file.length()));
-            } else if(current_file.isDirectory()) {
+            } else if (current_file.isDirectory()) {
                 File temp[] = current_file.listFiles();
                 int n = (temp != null ? temp.length : 0);
                 holder.details.setText(n + " items");
-            }
-            else {
+            } else {
                 holder.details.setText("");
             }
             if (!mBusy) {
@@ -1353,6 +1449,8 @@ public class FileViewer extends AppCompatActivity
                             holder.icon.setImageResource(R.drawable.file_svg);
                         } else if (ext.equals("csv")) {
                             holder.icon.setImageResource(R.drawable.file_csv);
+                        } else if (ext.equals("sqlite")) {
+                            holder.icon.setImageResource(R.drawable.file_sqlite);
                         } else if (Arrays.asList(audio_ext).contains(ext)) {
                             holder.icon.setImageResource(R.drawable.file_music);
                         } else if (Arrays.asList(image_ext).contains(ext)) {
