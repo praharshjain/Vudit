@@ -2,12 +2,201 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/file_list_view"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="com.praharsh.vudit.FileViewer"
     tools:showIn="@layout/app_bar_nav">
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?android:attr/listDivider" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/home_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            tools:showIn="@layout/file_viewer">
+
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btn_image_files"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:drawable/dialog_holo_light_frame"
+                    android:drawableLeft="@drawable/file_image"
+                    android:drawablePadding="10dp"
+                    android:gravity="center_vertical"
+                    android:padding="20dp"
+                    android:singleLine="true"
+                    android:text="Pictures"
+                    android:textAllCaps="false" />
+
+                <Button
+                    android:id="@+id/btn_music_files"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:drawable/dialog_holo_light_frame"
+                    android:drawableLeft="@drawable/file_music"
+                    android:drawablePadding="10dp"
+                    android:gravity="center_vertical"
+                    android:padding="20dp"
+                    android:singleLine="true"
+                    android:text="Music"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btn_video_files"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:drawable/dialog_holo_light_frame"
+                    android:drawableLeft="@drawable/file_video"
+                    android:drawablePadding="10dp"
+                    android:gravity="center_vertical"
+                    android:padding="20dp"
+                    android:singleLine="true"
+                    android:text="Videos"
+                    android:textAllCaps="false" />
+
+                <Button
+                    android:id="@+id/btn_document_files"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:drawable/dialog_holo_light_frame"
+                    android:drawableLeft="@drawable/file_doc"
+                    android:drawablePadding="10dp"
+                    android:gravity="center_vertical"
+                    android:padding="20dp"
+                    android:singleLine="true"
+                    android:text="Documents"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btn_archive_files"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:drawable/dialog_holo_light_frame"
+                    android:drawableLeft="@drawable/file_archive"
+                    android:drawablePadding="10dp"
+                    android:gravity="center_vertical"
+                    android:padding="20dp"
+                    android:singleLine="true"
+                    android:text="Archives"
+                    android:textAllCaps="false" />
+
+                <Button
+                    android:id="@+id/btn_text_files"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:drawable/dialog_holo_light_frame"
+                    android:drawableLeft="@drawable/file_default"
+                    android:drawablePadding="10dp"
+                    android:gravity="center_vertical"
+                    android:padding="20dp"
+                    android:singleLine="true"
+                    android:text="Text files"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btn_camera_folder"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:drawable/dialog_holo_light_frame"
+                    android:drawableLeft="@android:drawable/ic_menu_camera"
+                    android:drawablePadding="10dp"
+                    android:gravity="center_vertical"
+                    android:padding="20dp"
+                    android:singleLine="true"
+                    android:text="Camera"
+                    android:textAllCaps="false" />
+
+                <Button
+                    android:id="@+id/btn_downloads_folder"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:drawable/dialog_holo_light_frame"
+                    android:drawableLeft="@android:drawable/stat_sys_download_done"
+                    android:drawablePadding="10dp"
+                    android:gravity="center_vertical"
+                    android:padding="20dp"
+                    android:singleLine="true"
+                    android:text="Downloads"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+
+            <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/btn_favourites_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:drawable/dialog_holo_light_frame"
+                    android:drawableLeft="@android:drawable/btn_star_big_on"
+                    android:drawablePadding="10dp"
+                    android:gravity="center_vertical"
+                    android:padding="20dp"
+                    android:singleLine="true"
+                    android:text="Favourites"
+                    android:textAllCaps="false" />
+
+                <Button
+                    android:id="@+id/btn_recents_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:background="@android:drawable/dialog_holo_light_frame"
+                    android:drawableLeft="@android:drawable/ic_menu_recent_history"
+                    android:drawablePadding="10dp"
+                    android:gravity="center_vertical"
+                    android:padding="20dp"
+                    android:singleLine="true"
+                    android:text="Recent Items"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
 
     <ListView
         android:id="@+id/list"

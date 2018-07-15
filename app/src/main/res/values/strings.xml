@@ -15,4 +15,5 @@
         <item>Ascending</item>
         <item>Descending</item>
     </string-array>
+    <string name="title_activity_home">HomeActivity</string>
 </resources>

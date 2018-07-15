@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/storage_view"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:drawable/dialog_holo_light_frame">
+
+    <ImageView
+        android:id="@+id/storage_icon"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:src="@drawable/storage" />
+
+    <TextView
+        android:id="@+id/storage_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/storage_icon"
+        android:paddingTop="10dp"
+        android:text="Internal Storage"
+        android:textColor="#000000"
+        android:textSize="16dp" />
+
+    <ProgressBar
+        android:id="@+id/storage_bar"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@id/storage_name"
+        android:layout_alignLeft="@+id/storage_name"
+        android:layout_alignTop="@+id/storage_name"
+        android:layout_marginRight="10dp"
+        android:max="100"
+        android:scaleY="1.5" />
+
+    <TextView
+        android:id="@+id/storage_details"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@id/storage_bar"
+        android:layout_alignParentRight="true"
+        android:layout_alignTop="@+id/storage_bar"
+        android:paddingRight="10dp"
+        android:paddingTop="15dp"
+        android:text="0.8 GB free of 24.0 GB"
+        android:textColor="#000000"
+        android:textSize="13dp" />
+
+    android:orientation="vertical" android:layout_width="match_parent"
+</RelativeLayout>

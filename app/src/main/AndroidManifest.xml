@@ -28,6 +28,7 @@
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
@@ -44,6 +45,16 @@
                     android:host="*"
                     android:mimeType="application/pdf"
                     android:scheme="content" />
+                <!-- Zip -->
+                <data
+                    android:host="*"
+                    android:mimeType="application/zip"
+                    android:scheme="file" />
+                <!-- SQLite -->
+                <data
+                    android:host="*"
+                    android:mimeType="application/x-sqlite3"
+                    android:scheme="file" />
                 <!-- Audio -->
                 <data
                     android:host="*"
@@ -89,6 +100,18 @@
                     android:mimeType="*/*"
                     android:pathPattern=".*\\.pdf"
                     android:scheme="content" />
+                <!-- SQLite -->
+                <data
+                    android:host="*"
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.sqlite"
+                    android:scheme="file" />
+                <!-- Zip -->
+                <data
+                    android:host="*"
+                    android:mimeType="*/*"
+                    android:pathPattern=".*\\.zip"
+                    android:scheme="file" />
                 <!-- Audio -->
                 <data
                     android:host="*"
@@ -269,4 +292,5 @@
             android:label="SQLiteViewer"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
     </application>
+
 </manifest>
