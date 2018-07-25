@@ -157,7 +157,7 @@ public class FileViewer extends AppCompatActivity
     //supported extensions
     static final String audio_ext[] = {"mp3", "oog", "wav", "mid", "m4a", "amr"};
     static final String image_ext[] = {"png", "jpg", "gif", "bmp", "jpeg", "webp"};
-    static final String video_ext[] = {"mp4", "3gp", "mkv", "webm"};
+    static final String video_ext[] = {"mp4", "3gp", "mkv", "webm", "flv", "m4v"};
     static final String web_ext[] = {"htm", "html", "js", "xml"};
     static final String opendoc_ext[] = {"odt", "ott", "odp", "otp", "ods", "ots", "fodt", "fods", "fodp"};
     static final String txt_ext[] = {"ascii", "asm", "awk", "bash", "bat", "bf", "bsh", "c", "cert", "cgi", "clj", "conf", "cpp", "cs", "css", "csv", "elr", "go", "h", "hs", "htaccess", "htm", "html", "ini", "java", "js", "json", "key", "lisp", "log", "lua", "md", "mkdn", "pem", "php", "pl", "py", "rb", "readme", "scala", "sh", "sql", "srt", "sub", "tex", "txt", "vb", "vbs", "vhdl", "wollok", "xml", "xsd", "xsl", "yaml", "iml", "gitignore", "gradle"};

@@ -7,7 +7,7 @@ public class HTMLViewer extends WebViewBaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        String file_path = getIntent().getStringExtra("file");
-        wv.loadUrl("file://" + file_path);
+        String file_path = "file://" + getIntent().getStringExtra("file");
+        wv.loadUrl(file_path);
     }
 }

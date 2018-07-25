@@ -23,6 +23,8 @@ public class WebViewBaseActivity extends AppCompatActivity {
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
         wv = (WebView) findViewById(R.id.browser);
         wv.setWebViewClient(new MyClient());
+        wv.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
+        wv.setScrollbarFadingEnabled(true);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             // chromium, enable hardware acceleration
             wv.setLayerType(View.LAYER_TYPE_HARDWARE, null);
@@ -44,10 +46,14 @@ public class WebViewBaseActivity extends AppCompatActivity {
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
-        settings.setAllowFileAccessFromFileURLs(true);
-        settings.setAllowUniversalAccessFromFileURLs(true);
-        wv.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
-        wv.setScrollbarFadingEnabled(true);
+        settings.setAppCacheEnabled(true);
+        settings.setDatabaseEnabled(true);
+        settings.setPluginState(WebSettings.PluginState.ON);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+            settings.setAllowFileAccessFromFileURLs(true);
+            settings.setAllowUniversalAccessFromFileURLs(true);
+            settings.setMediaPlaybackRequiresUserGesture(false);
+        }
     }
 
     @Override
@@ -59,6 +65,25 @@ public class WebViewBaseActivity extends AppCompatActivity {
             }
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    @Override
+    protected void onResume() {
+        wv.onResume();
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        wv.onPause();
+        super.onPause();
+    }
+
+    @Override
+    protected void onDestroy() {
+        wv.removeAllViews();
+        wv.destroy();
+        super.onDestroy();
     }
 
     class MyClient extends WebViewClient {

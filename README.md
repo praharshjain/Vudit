@@ -19,7 +19,7 @@ Supported file types and extensions -
     
     Image files - "png", "jpg", "gif", "bmp", "jpeg", "webp", "svg"  
     
-    Video files - "mp4", "3gp", "mkv", "webm"
+    Video files - "mp4", "3gp", "mkv", "webm", "flv", "m4v"
 
 2. Document files:
 
