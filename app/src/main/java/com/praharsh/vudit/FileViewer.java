@@ -239,7 +239,7 @@ public class FileViewer extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 File f = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-                if (f == null || f.getPath().equals("") || !f.exists())
+                if (f == null || "".equals(f.getPath()) || !f.exists())
                     f = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM");
                 if (f.exists())
                     updateFiles(f);
@@ -251,7 +251,7 @@ public class FileViewer extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 File f = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                if (f == null || f.getPath().equals("") || !f.exists())
+                if (f == null || "".equals(f.getPath()) || !f.exists())
                     f = new File(Environment.getExternalStorageDirectory().getPath() + "/Downloads");
                 if (f.exists())
                     updateFiles(f);
@@ -426,7 +426,7 @@ public class FileViewer extends AppCompatActivity
                 showMsg("External Storage not accessible", 1);
         } else if (id == R.id.nav_camera) {
             File f = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-            if (f == null || f.getPath().equals("") || !f.exists())
+            if (f == null || "".equals(f.getPath()) || !f.exists())
                 f = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM");
             if (f.exists())
                 updateFiles(f);
@@ -434,7 +434,7 @@ public class FileViewer extends AppCompatActivity
                 showMsg("Camera folder not accessible", 1);
         } else if (id == R.id.nav_downloads) {
             File f = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-            if (f == null || f.getPath().equals("") || !f.exists())
+            if (f == null || "".equals(f.getPath()) || !f.exists())
                 f = new File(Environment.getExternalStorageDirectory().getPath() + "/Downloads");
             if (f.exists())
                 updateFiles(f);
@@ -732,16 +732,16 @@ public class FileViewer extends AppCompatActivity
         } else if (current_file.isFile()) {
             isValid = true;
             String ext = extension(current_file.getName());
-            if (ext.equals("pdf")) {
+            if ("pdf".equals(ext)) {
                 in = new Intent(FileViewer.this, DOCViewer.class);
                 in.putExtra("file", current_file.getPath());
                 in.putExtra("isPDF", true);
                 startActivity(in);
-            } else if (ext.equals("sqlite")) {
+            } else if ("sqlite".equals(ext)) {
                 in = new Intent(FileViewer.this, SQLiteViewer.class);
                 in.putExtra("file", current_file.getPath());
                 startActivity(in);
-            } else if (ext.equals("zip")) {
+            } else if ("zip".equals(ext)) {
                 String dirName = unpackZip(current_file, new File(tempPath));
                 if (dirName.length() > 0) {
                     File f = new File(tempPath + dirName);
@@ -750,7 +750,7 @@ public class FileViewer extends AppCompatActivity
                     showMsg("Zip file is not valid", 1);
                     freeMemory(true);
                 }
-            } else if (ext.equals("svg")) {
+            } else if ("svg".equals(ext)) {
                 Intent in = new Intent(FileViewer.this, HTMLViewer.class);
                 in.putExtra("file", current_file.getPath());
                 startActivity(in);
@@ -952,7 +952,7 @@ public class FileViewer extends AppCompatActivity
             type.setText(mimeType);
             size.setText(displaySize(current_file.length()));
             String ext = extension(current_file.getName());
-            if (ext.equals("apk")) {
+            if ("apk".equals(ext)) {
                 String path = current_file.getPath();
                 PackageManager pm = getPackageManager();
                 PackageInfo pi = pm.getPackageArchiveInfo(path, 0);
@@ -978,15 +978,15 @@ public class FileViewer extends AppCompatActivity
                     mp.reset();
                     mp.release();
                     String album = meta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ALBUM);
-                    album = ((album == null || album.equals("")) ? "Unknown" : album);
+                    album = ((album == null || "".equals(album)) ? "Unknown" : album);
                     String artist = meta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-                    artist = ((artist == null || artist.equals("")) ? "Unknown" : artist);
+                    artist = ((artist == null || "".equals(artist)) ? "Unknown" : artist);
                     String genre = meta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE);
-                    genre = ((genre == null || genre.equals("")) ? "Unknown" : genre);
+                    genre = ((genre == null || "".equals(genre)) ? "Unknown" : genre);
                     String year = meta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_YEAR);
-                    year = ((year == null || year.equals("")) ? "Unknown" : year);
+                    year = ((year == null || "".equals(year)) ? "Unknown" : year);
                     bitrate = meta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE);
-                    bitrate = ((bitrate == null || bitrate.equals("")) ? "Unknown" : bitrate);
+                    bitrate = ((bitrate == null || "".equals(bitrate)) ? "Unknown" : bitrate);
                     meta.release();
                     info += "\nTrack Duration : " + String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes(duration), TimeUnit.MILLISECONDS.toSeconds(duration) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
                     info += "\nAlbum : " + album;
@@ -1020,13 +1020,13 @@ public class FileViewer extends AppCompatActivity
                     mp.reset();
                     mp.release();
                     bitrate = meta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE);
-                    bitrate = ((bitrate == null || bitrate.equals("")) ? "Unknown" : bitrate);
+                    bitrate = ((bitrate == null || "".equals(bitrate)) ? "Unknown" : bitrate);
                     String frame_rate = meta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE);
-                    frame_rate = ((frame_rate == null || frame_rate.equals("")) ? "Unknown" : frame_rate);
+                    frame_rate = ((frame_rate == null || "".equals(frame_rate)) ? "Unknown" : frame_rate);
                     String height = meta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT);
-                    height = ((height == null || height.equals("")) ? "Unknown" : height);
+                    height = ((height == null || "".equals(height)) ? "Unknown" : height);
                     String width = meta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH);
-                    width = ((width == null || width.equals("")) ? "Unknown" : width);
+                    width = ((width == null || "".equals(width)) ? "Unknown" : width);
                     meta.release();
                     info += "\nTrack Duration : " + String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes(duration), TimeUnit.MILLISECONDS.toSeconds(duration) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
                     info += "\nBitrate : " + bitrate;
@@ -1185,20 +1185,20 @@ public class FileViewer extends AppCompatActivity
                     } else {
                         holder.details.setText(displaySize(current_file.length()));
                         String ext = extension(current_file.getName());
-                        if (ext.equals("apk")) {
+                        if ("apk".equals(ext)) {
                             String path = current_file.getPath();
                             PackageManager pm = getPackageManager();
                             PackageInfo pi = pm.getPackageArchiveInfo(path, 0);
                             pi.applicationInfo.sourceDir = path;
                             pi.applicationInfo.publicSourceDir = path;
                             holder.icon.setImageDrawable(pi.applicationInfo.loadIcon(pm));
-                        } else if (ext.equals("pdf")) {
+                        } else if ("pdf".equals(ext)) {
                             holder.icon.setImageResource(R.drawable.file_pdf);
-                        } else if (ext.equals("svg")) {
+                        } else if ("svg".equals(ext)) {
                             holder.icon.setImageResource(R.drawable.file_svg);
-                        } else if (ext.equals("csv")) {
+                        } else if ("csv".equals(ext)) {
                             holder.icon.setImageResource(R.drawable.file_csv);
-                        } else if (ext.equals("sqlite")) {
+                        } else if ("sqlite".equals(ext)) {
                             holder.icon.setImageResource(R.drawable.file_sqlite);
                         } else if (Arrays.asList(audio_ext).contains(ext)) {
                             holder.icon.setImageResource(R.drawable.file_music);
