@@ -13,7 +13,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 public class WebViewBaseActivity extends AppCompatActivity {
-    private WebView wv;
+    protected WebView wv;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
