@@ -10,8 +10,8 @@ import android.widget.MediaController;
 import android.widget.VideoView;
 
 public class VideoPlayer extends Activity {
-    VideoView vw;
-    Uri video;
+    private VideoView vw;
+    private Uri video;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

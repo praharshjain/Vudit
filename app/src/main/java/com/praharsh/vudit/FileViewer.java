@@ -866,7 +866,7 @@ public class FileViewer extends AppCompatActivity
                         }
                     });
                     player_dialog.setView(player);
-                    final AlertDialog ad = player_dialog.show();
+                    player_dialog.show();
                 } else {
                     showMsg("Invalid music file", 1);
                 }
@@ -1550,7 +1550,6 @@ public class FileViewer extends AppCompatActivity
         String toolbarTitle = "";
         String selectionQuery = null;
         String[] selectionArgs = null;
-        int i, n;
         switch (type) {
             case 1: //images
                 uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;

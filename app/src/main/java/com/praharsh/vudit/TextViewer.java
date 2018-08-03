@@ -12,7 +12,7 @@ import java.io.FileReader;
 import static android.net.Uri.encode;
 
 public class TextViewer extends WebViewBaseActivity {
-    String file_text;
+    private String file_text;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,8 +42,8 @@ public class TextViewer extends WebViewBaseActivity {
     }
 
     class WebAppInterface {
-        Context mContext;
-        String text;
+        private Context mContext;
+        private String text;
 
         WebAppInterface(Context c, String file_text) {
             mContext = c;
