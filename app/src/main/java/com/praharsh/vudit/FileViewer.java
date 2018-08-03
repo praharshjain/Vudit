@@ -92,10 +92,8 @@ public class FileViewer extends AppCompatActivity
     private static boolean mBusy = false, recentsView = false, favouritesView = false, homeView = true;
     private static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1, SDCARD_WRITE_PERMISSION_REQUEST_CODE = 100;
     private static ViewHolder holder;
-    private static DocumentFile pickedDir;
     private Toolbar toolbar;
     private DrawerLayout drawer;
-    private ActionBarDrawerToggle toggle;
     private ListView lv;
     private LinearLayout homeViewLayout;
     private File file, files[], origFiles[];
@@ -187,7 +185,7 @@ public class FileViewer extends AppCompatActivity
             }
         });
         drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-        toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -526,7 +524,7 @@ public class FileViewer extends AppCompatActivity
                 startActivity(email);
             }
         }
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
@@ -710,7 +708,7 @@ public class FileViewer extends AppCompatActivity
         else {
             if (SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 Uri treeUri = resultData.getData();
-                pickedDir = DocumentFile.fromTreeUri(this, treeUri);
+                DocumentFile pickedDir = DocumentFile.fromTreeUri(this, treeUri);
                 grantUriPermission(getPackageName(), treeUri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                 getContentResolver().takePersistableUriPermission(treeUri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
             }
@@ -1056,7 +1054,7 @@ public class FileViewer extends AppCompatActivity
                 public void run() {
                     Message msg = new Message();
                     Bundle data = new Bundle();
-                    data.putString("MD5", MD5(current_file.getPath()));
+                    data.putString("MD5", md5(current_file.getPath()));
                     msg.setData(data);
                     msg.setTarget(h);
                     h.sendMessage(msg);
@@ -1480,7 +1478,7 @@ public class FileViewer extends AppCompatActivity
         }
     }
 
-    private String MD5(String file_path) {
+    private String md5(String file_path) {
         try {
             FileInputStream fs = new FileInputStream(file_path);
             MessageDigest md = MessageDigest.getInstance("MD5");
