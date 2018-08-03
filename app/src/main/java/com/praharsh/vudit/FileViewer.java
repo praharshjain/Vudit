@@ -1648,10 +1648,10 @@ public class FileViewer extends AppCompatActivity
     }
 
     static class ViewHolder {
-        TextView name;
-        TextView date;
-        TextView details;
-        ImageView icon;
+        private TextView name;
+        private TextView date;
+        private TextView details;
+        private ImageView icon;
     }
 
     class EfficientAdapter extends BaseAdapter implements Filterable {
