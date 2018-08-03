@@ -44,13 +44,11 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.webkit.MimeTypeMap;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.Filter;
 import android.widget.Filterable;
@@ -91,38 +89,38 @@ import static android.os.Build.VERSION.SDK_INT;
 public class FileViewer extends AppCompatActivity
         implements ListView.OnScrollListener, NavigationView.OnNavigationItemSelectedListener,
         SearchView.OnQueryTextListener {
-    static boolean mBusy = false, recentsView = false, favouritesView = false, homeView = true;
-    static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1, SDCARD_WRITE_PERMISSION_REQUEST_CODE = 100;
-    static ViewHolder holder;
-    static DocumentFile pickedDir;
-    Toolbar toolbar;
-    DrawerLayout drawer;
-    ActionBarDrawerToggle toggle;
-    ListView lv;
-    LinearLayout homeViewLayout;
-    File file, files[], origFiles[];
-    RecentFilesStack recent;
-    ArrayList<File> favourites;
-    EfficientAdapter adap;
-    FileFilter fileFilter;
-    Intent in;
-    TextView current_duration, total_duration, title;
-    ImageView album_art, icon;
-    ImageButton btn_play, btn_rev, btn_forward;
-    SeekBar seek;
-    static final String tempPath = Environment.getExternalStorageDirectory().getPath() + "/Vudit/temp/";
-    byte data[];
-    int sortCriterion = 0;
-    boolean isValid, sortDesc = false, listFoldersFirst = true, storeRecentItems = true, showHiddenFiles = true;
+    private static boolean mBusy = false, recentsView = false, favouritesView = false, homeView = true;
+    private static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1, SDCARD_WRITE_PERMISSION_REQUEST_CODE = 100;
+    private static ViewHolder holder;
+    private static DocumentFile pickedDir;
+    private Toolbar toolbar;
+    private DrawerLayout drawer;
+    private ActionBarDrawerToggle toggle;
+    private ListView lv;
+    private LinearLayout homeViewLayout;
+    private File file, files[], origFiles[];
+    private RecentFilesStack recent;
+    private ArrayList<File> favourites;
+    private EfficientAdapter adap;
+    private FileFilter fileFilter;
+    private Intent in;
+    private TextView current_duration, total_duration, title;
+    private ImageView album_art, icon;
+    private ImageButton btn_play, btn_rev, btn_forward;
+    private SeekBar seek;
+    private static final String tempPath = Environment.getExternalStorageDirectory().getPath() + "/Vudit/temp/";
+    private byte data[];
+    private int sortCriterion = 0;
+    private boolean isValid, sortDesc = false, listFoldersFirst = true, storeRecentItems = true, showHiddenFiles = true;
     //Comparators for sorting
-    Comparator<File> byName = new Comparator<File>() {
+    private Comparator<File> byName = new Comparator<File>() {
         @Override
         public int compare(File f1, File f2) {
             int res = String.CASE_INSENSITIVE_ORDER.compare(f1.getName(), f2.getName());
             return (res == 0 ? f1.getName().compareTo(f2.getName()) : res);
         }
     };
-    Comparator<File> byDate = new Comparator<File>() {
+    private Comparator<File> byDate = new Comparator<File>() {
         @Override
         public int compare(File f1, File f2) {
             if (f1.lastModified() > f2.lastModified()) return 1;
@@ -130,7 +128,7 @@ public class FileViewer extends AppCompatActivity
             else return 0;
         }
     };
-    Comparator<File> byDateDesc = new Comparator<File>() {
+    private Comparator<File> byDateDesc = new Comparator<File>() {
         @Override
         public int compare(File f1, File f2) {
             if (f1.lastModified() > f2.lastModified()) return -1;
@@ -138,7 +136,7 @@ public class FileViewer extends AppCompatActivity
             else return 0;
         }
     };
-    Comparator<File> bySize = new Comparator<File>() {
+    private Comparator<File> bySize = new Comparator<File>() {
         @Override
         public int compare(File f1, File f2) {
             if (f1.length() > f2.length()) return 1;
@@ -146,7 +144,7 @@ public class FileViewer extends AppCompatActivity
             else return 0;
         }
     };
-    Comparator<File> bySizeDesc = new Comparator<File>() {
+    private Comparator<File> bySizeDesc = new Comparator<File>() {
         @Override
         public int compare(File f1, File f2) {
             if (f1.length() > f2.length()) return -1;
@@ -155,17 +153,17 @@ public class FileViewer extends AppCompatActivity
         }
     };
     //supported extensions
-    static final String audio_ext[] = {"mp3", "oog", "wav", "mid", "m4a", "amr"};
-    static final String image_ext[] = {"png", "jpg", "gif", "bmp", "jpeg", "webp"};
-    static final String video_ext[] = {"mp4", "3gp", "mkv", "webm", "flv", "m4v"};
-    static final String web_ext[] = {"htm", "html", "js", "xml"};
-    static final String opendoc_ext[] = {"odt", "ott", "odp", "otp", "ods", "ots", "fodt", "fods", "fodp"};
-    static final String txt_ext[] = {"ascii", "asm", "awk", "bash", "bat", "bf", "bsh", "c", "cert", "cgi", "clj", "conf", "cpp", "cs", "css", "csv", "elr", "go", "h", "hs", "htaccess", "htm", "html", "ini", "java", "js", "json", "key", "lisp", "log", "lua", "md", "mkdn", "pem", "php", "pl", "py", "rb", "readme", "scala", "sh", "sql", "srt", "sub", "tex", "txt", "vb", "vbs", "vhdl", "wollok", "xml", "xsd", "xsl", "yaml", "iml", "gitignore", "gradle"};
+    private static final String audio_ext[] = {"mp3", "oog", "wav", "mid", "m4a", "amr"};
+    private static final String image_ext[] = {"png", "jpg", "gif", "bmp", "jpeg", "webp"};
+    private static final String video_ext[] = {"mp4", "3gp", "mkv", "webm", "flv", "m4v"};
+    private static final String web_ext[] = {"htm", "html", "js", "xml"};
+    private static final String opendoc_ext[] = {"odt", "ott", "odp", "otp", "ods", "ots", "fodt", "fods", "fodp"};
+    private static final String txt_ext[] = {"ascii", "asm", "awk", "bash", "bat", "bf", "bsh", "c", "cert", "cgi", "clj", "conf", "cpp", "cs", "css", "csv", "elr", "go", "h", "hs", "htaccess", "htm", "html", "ini", "java", "js", "json", "key", "lisp", "log", "lua", "md", "mkdn", "pem", "php", "pl", "py", "rb", "readme", "scala", "sh", "sql", "srt", "sub", "tex", "txt", "vb", "vbs", "vhdl", "wollok", "xml", "xsd", "xsl", "yaml", "iml", "gitignore", "gradle"};
     //only icon
-    static final String archive_ext[] = {"zip", "jar", "rar", "tar", "gz", "lz", "7z", "tgz", "tlz", "war", "ace", "cab", "dmg", "tar.gz"};
-    static final String doc_ext[] = {"doc", "docm", "docx", "dot", "dotm", "dotx", "odt", "ott", "fodt", "rtf", "wps"};
-    static final String xl_ext[] = {"xls", "xlsb", "xlsm", "xlt", "xlsx", "xltm", "xltx", "xlw", "ods", "ots", "fods"};
-    static final String ppt_ext[] = {"ppt", "pptx", "pptm", "pps", "ppsx", "ppsm", "pot", "potx", "potm", "odp", "otp", "fodp"};
+    private static final String archive_ext[] = {"zip", "jar", "rar", "tar", "gz", "lz", "7z", "tgz", "tlz", "war", "ace", "cab", "dmg", "tar.gz"};
+    private static final String doc_ext[] = {"doc", "docm", "docx", "dot", "dotm", "dotx", "odt", "ott", "fodt", "rtf", "wps"};
+    private static final String xl_ext[] = {"xls", "xlsb", "xlsm", "xlt", "xlsx", "xltm", "xltx", "xlw", "ods", "ots", "fods"};
+    private static final String ppt_ext[] = {"ppt", "pptx", "pptm", "pps", "ppsx", "ppsm", "pot", "potx", "potm", "odp", "otp", "fodp"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -285,7 +283,7 @@ public class FileViewer extends AppCompatActivity
         updateFiles(Environment.getExternalStorageDirectory());
         lv.setAdapter(adap);
         lv.setOnScrollListener(this);
-        findViewById(R.id.btn_recents_view).setVisibility( storeRecentItems ? View.VISIBLE : View.GONE);
+        findViewById(R.id.btn_recents_view).setVisibility(storeRecentItems ? View.VISIBLE : View.GONE);
         navigationView.getMenu().findItem(R.id.nav_recent).setVisible(storeRecentItems);
         //Check if secondary storage is available
         String sdcard = System.getenv("SECONDARY_STORAGE");
@@ -719,7 +717,7 @@ public class FileViewer extends AppCompatActivity
         }
     }
 
-    public void openFile(File current_file) {
+    private void openFile(File current_file) {
         if (!current_file.exists())
             return;
         current_file.setReadable(true);
@@ -922,7 +920,7 @@ public class FileViewer extends AppCompatActivity
         }
     }
 
-    public void showProperties(final File current_file) {
+    private void showProperties(final File current_file) {
         MediaPlayer mp = new MediaPlayer();
         MediaMetadataRetriever meta = new MediaMetadataRetriever();
         String info = "", bitrate = "";
@@ -1104,7 +1102,7 @@ public class FileViewer extends AppCompatActivity
         properties_dialog.show();
     }
 
-    public boolean updateFiles(File f) {
+    private boolean updateFiles(File f) {
         if (f.exists() && f.listFiles() != null) {
             file = f;
             files = f.listFiles();
@@ -1119,7 +1117,7 @@ public class FileViewer extends AppCompatActivity
         return false;
     }
 
-    public boolean deleteFiles(File f) {
+    private boolean deleteFiles(File f) {
         if (f == null || !f.exists())
             return false;
         f.setWritable(true);
@@ -1134,7 +1132,7 @@ public class FileViewer extends AppCompatActivity
         } else return f.delete();
     }
 
-    public void recentFiles() {
+    private void recentFiles() {
         RecentFilesStack temp = (RecentFilesStack<File>) recent.clone();
         files = new File[temp.size()];
         for (int i = 0; temp.size() > 0; i++) {
@@ -1147,7 +1145,7 @@ public class FileViewer extends AppCompatActivity
         updateList();
     }
 
-    public void favouriteFiles() {
+    private void favouriteFiles() {
         files = new File[favourites.size()];
         files = favourites.toArray(files);
         files = sortFiles(files);
@@ -1158,7 +1156,7 @@ public class FileViewer extends AppCompatActivity
         updateList();
     }
 
-    public void updateList() {
+    private void updateList() {
         homeView = false;
         lv.setVisibility(View.VISIBLE);
         homeViewLayout.setVisibility(View.GONE);
@@ -1231,7 +1229,7 @@ public class FileViewer extends AppCompatActivity
     }
 
     //Utility functions
-    public void restoreData() {
+    private void restoreData() {
         SharedPreferences prefs = getSharedPreferences("Vudit_Settings", MODE_PRIVATE);
         listFoldersFirst = prefs.getBoolean("FoldersFirst", true);
         showHiddenFiles = prefs.getBoolean("ShowHidden", true);
@@ -1261,7 +1259,7 @@ public class FileViewer extends AppCompatActivity
         }
     }
 
-    public boolean saveData() {
+    private boolean saveData() {
         try {
             SharedPreferences.Editor recent_editor = getSharedPreferences("Vudit_Recent_Items", MODE_PRIVATE).edit();
             SharedPreferences.Editor favourites_editor = getSharedPreferences("Vudit_Favourites", MODE_PRIVATE).edit();
@@ -1303,7 +1301,7 @@ public class FileViewer extends AppCompatActivity
         }
     }
 
-    public File[] sortFiles(File f[]) {
+    private File[] sortFiles(File f[]) {
         int i, n;
         if (!showHiddenFiles) {
             ArrayList<File> temp = new ArrayList<File>();
@@ -1349,7 +1347,7 @@ public class FileViewer extends AppCompatActivity
         return f;
     }
 
-    public boolean checkAndRequestPermissions() {
+    private boolean checkAndRequestPermissions() {
         if (SDK_INT >= Build.VERSION_CODES.M) {
             int permissionStorage = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
             int permissionWriteStorage = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
@@ -1370,7 +1368,7 @@ public class FileViewer extends AppCompatActivity
         return true;
     }
 
-    public static String unpackZip(File zipFile, File targetDirectory) {
+    private static String unpackZip(File zipFile, File targetDirectory) {
         String dirName = "";
         try {
             ZipInputStream zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(zipFile)));
@@ -1406,7 +1404,7 @@ public class FileViewer extends AppCompatActivity
         return dirName;
     }
 
-    public void freeMemory(boolean deleteTempFiles) {
+    private void freeMemory(boolean deleteTempFiles) {
         //remove temp files
         if (deleteTempFiles) {
             deleteFiles(new File(tempPath));
@@ -1417,27 +1415,27 @@ public class FileViewer extends AppCompatActivity
         System.gc();
     }
 
-    public void showMsg(String msg, int mode) {
+    private void showMsg(String msg, int mode) {
         if (mode == 0)
             Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
         else
             Snackbar.make(findViewById(R.id.list), msg, Snackbar.LENGTH_LONG).setAction("Action", null).show();
     }
 
-    public String displaySize(long bytes) {
+    private String displaySize(long bytes) {
         if (bytes > 1073741824) return String.format("%.02f", (float) bytes / 1073741824) + " GB";
         else if (bytes > 1048576) return String.format("%.02f", (float) bytes / 1048576) + " MB";
         else if (bytes > 1024) return String.format("%.02f", (float) bytes / 1024) + " KB";
         else return bytes + " B";
     }
 
-    public String extension(String name) {
+    private String extension(String name) {
         int i = name.lastIndexOf(".");
         if (i > 0) return name.substring(i + 1).toLowerCase();
         else return "";
     }
 
-    public String getFilePermissions(File file) {
+    private String getFilePermissions(File file) {
         String s = "";
         if (file.getParent() != null) {
             try {
@@ -1455,7 +1453,7 @@ public class FileViewer extends AppCompatActivity
         return s;
     }
 
-    public static long getFolderSize(File file) {
+    private static long getFolderSize(File file) {
         long size;
         if (file.exists() && file.isDirectory()) {
             size = 0;
@@ -1471,7 +1469,7 @@ public class FileViewer extends AppCompatActivity
         } else return 0;
     }
 
-    public boolean appInstalled(String uri) {
+    private boolean appInstalled(String uri) {
         PackageManager pm = getPackageManager();
         try {
             pm.getPackageInfo(uri, PackageManager.GET_ACTIVITIES);
@@ -1482,7 +1480,7 @@ public class FileViewer extends AppCompatActivity
         }
     }
 
-    public String MD5(String file_path) {
+    private String MD5(String file_path) {
         try {
             FileInputStream fs = new FileInputStream(file_path);
             MessageDigest md = MessageDigest.getInstance("MD5");
@@ -1509,7 +1507,7 @@ public class FileViewer extends AppCompatActivity
         }
     }
 
-    public static int calculateSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
+    private static int calculateSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
         // Raw height and width of image
         final int height = options.outHeight;
         final int width = options.outWidth;
@@ -1527,7 +1525,7 @@ public class FileViewer extends AppCompatActivity
         return inSampleSize;
     }
 
-    public static Bitmap decodeSampledBitmap(String pathToFile, int reqWidth, int reqHeight) {
+    private static Bitmap decodeSampledBitmap(String pathToFile, int reqWidth, int reqHeight) {
         // First decode with inJustDecodeBounds=true to check dimensions
         final BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
@@ -1539,17 +1537,17 @@ public class FileViewer extends AppCompatActivity
         return BitmapFactory.decodeFile(pathToFile, options);
     }
 
-    public long getAvailableMemoryInBytes(String filePath) {
+    private long getAvailableMemoryInBytes(String filePath) {
         StatFs stat = new StatFs(filePath);
         return stat.getBlockSize() * (long) stat.getAvailableBlocks();
     }
 
-    public long getTotalMemoryInBytes(String filePath) {
+    private long getTotalMemoryInBytes(String filePath) {
         StatFs stat = new StatFs(filePath);
         return stat.getBlockSize() * (long) stat.getBlockCount();
     }
 
-    public void listMediaFiles(int type) {
+    private void listMediaFiles(int type) {
         Uri uri = null;
         String toolbarTitle = "";
         String selectionQuery = null;
@@ -1621,14 +1619,14 @@ public class FileViewer extends AppCompatActivity
         }
     }
 
-    public void switchToHomeView() {
+    private void switchToHomeView() {
         homeView = true;
         toolbar.setTitle("Vudit");
         homeViewLayout.setVisibility(View.VISIBLE);
         lv.setVisibility(View.GONE);
     }
 
-    public String[] getMimeTypeQueryArgs(String extArr[]) {
+    private String[] getMimeTypeQueryArgs(String extArr[]) {
         int n = extArr.length;
         String mimeType = null;
         ArrayList<String> selectionArgsList = new ArrayList<>();
@@ -1643,7 +1641,7 @@ public class FileViewer extends AppCompatActivity
         return selectionArgs;
     }
 
-    public String getMimeTypeQuery(String[] selectionArgs) {
+    private String getMimeTypeQuery(String[] selectionArgs) {
         int i, n = selectionArgs.length;
         String selectionQuery = MediaStore.Files.FileColumns.MIME_TYPE + "=? ";
         for (i = 1; i < n; i++) {

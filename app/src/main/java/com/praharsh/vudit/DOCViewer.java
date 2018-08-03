@@ -1,7 +1,6 @@
 package com.praharsh.vudit;
 
 import android.os.Bundle;
-import android.widget.Toast;
 
 import static android.net.Uri.encode;
 
