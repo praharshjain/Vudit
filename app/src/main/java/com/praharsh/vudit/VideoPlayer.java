@@ -11,7 +11,6 @@ import android.widget.VideoView;
 
 public class VideoPlayer extends Activity {
     private VideoView vw;
-    private Uri video;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,6 +33,7 @@ public class VideoPlayer extends Activity {
         MediaController mc = new MediaController(this);
         mc.setAnchorView(vw);
         mc.setMediaPlayer(vw);
+        Uri video = null;
         try {
             video = Uri.parse(getIntent().getStringExtra("file"));
         } catch (Exception e) {

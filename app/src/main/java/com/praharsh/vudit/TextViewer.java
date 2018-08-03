@@ -12,7 +12,6 @@ import java.io.FileReader;
 import static android.net.Uri.encode;
 
 public class TextViewer extends WebViewBaseActivity {
-    private String file_text;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,7 +32,7 @@ public class TextViewer extends WebViewBaseActivity {
                 text.append('\n');
             }
             br.close();
-            file_text = text.toString();
+            String file_text = text.toString();
             wv.addJavascriptInterface(new WebAppInterface(this, file_text), "Android");
             wv.loadUrl("javascript:showFile('" + file_text + "')");
         } catch (Exception e) {
