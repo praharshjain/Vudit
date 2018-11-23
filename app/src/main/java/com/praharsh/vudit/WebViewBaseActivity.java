@@ -21,17 +21,11 @@ public class WebViewBaseActivity extends AppCompatActivity {
         setContentView(R.layout.webview);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
                 WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
-        wv = (WebView) findViewById(R.id.browser);
+        wv = findViewById(R.id.browser);
         wv.setWebViewClient(new MyClient());
         wv.setScrollBarStyle(WebView.SCROLLBARS_OUTSIDE_OVERLAY);
         wv.setScrollbarFadingEnabled(true);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            // chromium, enable hardware acceleration
-            wv.setLayerType(View.LAYER_TYPE_HARDWARE, null);
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-            // older android version, disable hardware acceleration
-            wv.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
-        }
+        wv.setLayerType(View.LAYER_TYPE_HARDWARE, null);
         wv.setWebChromeClient(new WebChromeClient() {
             public void onProgressChanged(WebView view, int progress) {
             }

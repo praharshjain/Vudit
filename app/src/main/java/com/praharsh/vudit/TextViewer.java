@@ -41,11 +41,9 @@ public class TextViewer extends WebViewBaseActivity {
     }
 
     class WebAppInterface {
-        private Context mContext;
         private String text;
 
         WebAppInterface(Context c, String file_text) {
-            mContext = c;
             text = file_text;
         }
 
