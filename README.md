@@ -1,3 +1,5 @@
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fpraharshjain%2FVudit.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fpraharshjain%2FVudit?ref=badge_shield)
+
 <img src="https://github.com/praharshjain/Vudit/blob/master/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="40">&nbsp;&nbsp;Vudit
 ==========
 A file viewer for Android
@@ -48,3 +50,7 @@ Open project in Android Studio and build from source.
 License
 ----------------
 MIT
+
+
+## License
+[![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fpraharshjain%2FVudit.svg?type=large)](https://app.fossa.io/projects/git%2Bgithub.com%2Fpraharshjain%2FVudit?ref=badge_large)
