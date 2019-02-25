@@ -65,6 +65,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -1205,10 +1207,8 @@ public class FileViewer extends AppCompatActivity
                             holder.icon.setImageResource(R.drawable.file_sqlite);
                         } else if (Arrays.asList(audio_ext).contains(ext)) {
                             holder.icon.setImageResource(R.drawable.file_music);
-                        } else if (Arrays.asList(image_ext).contains(ext)) {
-                            holder.icon.setImageBitmap(ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(current_file.getPath()), 50, 50));
-                        } else if (Arrays.asList(video_ext).contains(ext)) {
-                            holder.icon.setImageBitmap(ThumbnailUtils.createVideoThumbnail(current_file.getPath(), MediaStore.Images.Thumbnails.MINI_KIND));
+                        } else if (Arrays.asList(image_ext).contains(ext) || Arrays.asList(video_ext).contains(ext)) {
+                            Glide.with(getApplicationContext()).load(Uri.fromFile(current_file)).placeholder(R.drawable.loading).into(holder.icon);
                         } else if (Arrays.asList(archive_ext).contains(ext)) {
                             holder.icon.setImageResource(R.drawable.file_archive);
                         } else if (Arrays.asList(doc_ext).contains(ext)) {
@@ -1221,7 +1221,6 @@ public class FileViewer extends AppCompatActivity
                             holder.icon.setImageResource(R.drawable.file_default);
                         }
                     }
-                    holder.icon.setTag(null);
                 }
                 break;
             default:
@@ -1717,12 +1716,8 @@ public class FileViewer extends AppCompatActivity
                 } else {
                     holder.icon.setImageResource(R.drawable.file_default);
                 }
-                // Null tag means the view has the correct data
-                holder.icon.setTag(null);
             } else {
                 holder.icon.setImageResource(R.drawable.loading);
-                // Non-null tag means the view still needs to load it's data
-                holder.icon.setTag(this);
             }
             return view;
         }
