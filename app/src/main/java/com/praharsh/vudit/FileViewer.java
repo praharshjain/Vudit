@@ -31,6 +31,7 @@ import android.support.design.widget.NavigationView;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v4.provider.DocumentFile;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.view.MenuItemCompat;
@@ -906,8 +907,10 @@ public class FileViewer extends AppCompatActivity
                     in.putExtra("file", current_file.getPath());
                     startActivity(in);
                 } else {
-                    in.setDataAndType(Uri.fromFile(current_file), mimeType);
+                    Uri uri = FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName(), current_file);
+                    in.setDataAndType(uri, mimeType);
                     in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    in.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     try {
                         startActivity(in);
                     } catch (ActivityNotFoundException e) {
