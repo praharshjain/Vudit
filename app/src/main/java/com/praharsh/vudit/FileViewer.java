@@ -176,9 +176,9 @@ public class FileViewer extends AppCompatActivity
         }
         //Setup UI
         setContentView(R.layout.file_viewer);
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -186,21 +186,22 @@ public class FileViewer extends AppCompatActivity
                         .setAction("Action", null).show();
             }
         });
-        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
-        lv = (ListView) findViewById(R.id.list);
+        lv = findViewById(R.id.list);
         registerForContextMenu(lv);
+        lv.setEmptyView(findViewById(R.id.empty));
         lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 openFile(files[i]);
             }
         });
-        homeViewLayout = (LinearLayout) findViewById(R.id.home_view);
+        homeViewLayout = findViewById(R.id.home_view);
         homeViewLayout.findViewById(R.id.btn_image_files).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -300,9 +301,9 @@ public class FileViewer extends AppCompatActivity
             final File f = new File(path);
             if (f != null && f.exists()) {
                 RelativeLayout storageView = (RelativeLayout) getLayoutInflater().inflate(R.layout.storage_view, null, false);
-                TextView details = (TextView) storageView.findViewById(R.id.storage_details);
-                TextView name = (TextView) storageView.findViewById(R.id.storage_name);
-                ProgressBar storageBar = (ProgressBar) storageView.findViewById(R.id.storage_bar);
+                TextView details = storageView.findViewById(R.id.storage_details);
+                TextView name = storageView.findViewById(R.id.storage_name);
+                ProgressBar storageBar = storageView.findViewById(R.id.storage_bar);
                 Long totalMemory = getTotalMemoryInBytes(path), freeMemory = getAvailableMemoryInBytes(path);
                 float usedMemory = totalMemory - freeMemory;
                 int percent = (int) ((usedMemory / totalMemory) * 100);
@@ -314,7 +315,7 @@ public class FileViewer extends AppCompatActivity
                 } else {
                     name.setText("External Storage");
                 }
-                LinearLayout l = (LinearLayout) findViewById(R.id.home_view);
+                LinearLayout l = findViewById(R.id.home_view);
                 storageView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
@@ -452,11 +453,11 @@ public class FileViewer extends AppCompatActivity
             settings_dialog.setIcon(android.R.drawable.ic_menu_preferences);
             settings_dialog.setTitle("Settings");
             settings_dialog.setView(settings_view);
-            final CheckBox folders_first_checkbox = (CheckBox) settings_view.findViewById(R.id.folders_first_checkbox);
-            final CheckBox hidden_files_checkbox = (CheckBox) settings_view.findViewById(R.id.hidden_files_checkbox);
-            final CheckBox recent_items_checkbox = (CheckBox) settings_view.findViewById(R.id.recent_items_checkbox);
-            final Spinner sort_criteria = (Spinner) settings_view.findViewById(R.id.sort_criteria);
-            final Spinner sort_mode = (Spinner) settings_view.findViewById(R.id.sort_mode);
+            final CheckBox folders_first_checkbox = settings_view.findViewById(R.id.folders_first_checkbox);
+            final CheckBox hidden_files_checkbox = settings_view.findViewById(R.id.hidden_files_checkbox);
+            final CheckBox recent_items_checkbox = settings_view.findViewById(R.id.recent_items_checkbox);
+            final Spinner sort_criteria = settings_view.findViewById(R.id.sort_criteria);
+            final Spinner sort_mode = settings_view.findViewById(R.id.sort_mode);
             folders_first_checkbox.setChecked(listFoldersFirst);
             hidden_files_checkbox.setChecked(showHiddenFiles);
             recent_items_checkbox.setChecked(storeRecentItems);
@@ -477,7 +478,7 @@ public class FileViewer extends AppCompatActivity
                             break;
                         }
                     }
-                    NavigationView nav = (NavigationView) findViewById(R.id.nav_view);
+                    NavigationView nav = findViewById(R.id.nav_view);
                     nav.getMenu().findItem(R.id.nav_recent).setVisible(storeRecentItems);
                     if (recentsView) {
                         if (storeRecentItems)
@@ -526,14 +527,14 @@ public class FileViewer extends AppCompatActivity
                 startActivity(email);
             }
         }
-        drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        drawer = findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
 
     @Override
     public void onBackPressed() {
-        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else if (file != null && file.getParentFile() != null && updateFiles(file.getParentFile())) {
@@ -769,15 +770,15 @@ public class FileViewer extends AppCompatActivity
                 if (isValid) {
                     final View player = getLayoutInflater().inflate(R.layout.music_player, null);
                     player.findViewById(R.id.icon);
-                    btn_play = (ImageButton) player.findViewById(R.id.btn_play);
-                    btn_rev = (ImageButton) player.findViewById(R.id.btn_rev);
-                    btn_forward = (ImageButton) player.findViewById(R.id.btn_forward);
-                    current_duration = (TextView) player.findViewById(R.id.current_duration);
-                    total_duration = (TextView) player.findViewById(R.id.total_duration);
-                    seek = (SeekBar) player.findViewById(R.id.seek);
-                    title = (TextView) player.findViewById(R.id.title);
-                    icon = (ImageView) player.findViewById(R.id.imageView);
-                    album_art = (ImageView) player.findViewById(R.id.album_art);
+                    btn_play = player.findViewById(R.id.btn_play);
+                    btn_rev = player.findViewById(R.id.btn_rev);
+                    btn_forward = player.findViewById(R.id.btn_forward);
+                    current_duration = player.findViewById(R.id.current_duration);
+                    total_duration = player.findViewById(R.id.total_duration);
+                    seek = player.findViewById(R.id.seek);
+                    title = player.findViewById(R.id.title);
+                    icon = player.findViewById(R.id.imageView);
+                    album_art = player.findViewById(R.id.album_art);
                     title.setText(current_file.getName());
                     icon.setImageResource(R.drawable.file_music);
                     if (data != null) {
@@ -875,7 +876,7 @@ public class FileViewer extends AppCompatActivity
             } else if (Arrays.asList(image_ext).contains(ext)) {
                 AlertDialog.Builder preview_dialog = new AlertDialog.Builder(new ContextThemeWrapper(FileViewer.this, android.R.style.Theme_Black));
                 View image_view = getLayoutInflater().inflate(R.layout.image_viewer, null);
-                final ImageView preview = (ImageView) image_view.findViewById(R.id.preview);
+                final ImageView preview = image_view.findViewById(R.id.preview);
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inJustDecodeBounds = true;
                 //Returns null, sizes are in the options variable
@@ -929,11 +930,11 @@ public class FileViewer extends AppCompatActivity
         int duration;
         AlertDialog.Builder properties_dialog = new AlertDialog.Builder(FileViewer.this);
         View properties_view = getLayoutInflater().inflate(R.layout.properties_view, null);
-        TextView name = (TextView) properties_view.findViewById(R.id.name);
-        TextView type = (TextView) properties_view.findViewById(R.id.type);
-        TextView time = (TextView) properties_view.findViewById(R.id.time);
-        final TextView size = (TextView) properties_view.findViewById(R.id.size);
-        final TextView details = (TextView) properties_view.findViewById(R.id.details);
+        TextView name = properties_view.findViewById(R.id.name);
+        TextView type = properties_view.findViewById(R.id.type);
+        TextView time = properties_view.findViewById(R.id.time);
+        final TextView size = properties_view.findViewById(R.id.size);
+        final TextView details = properties_view.findViewById(R.id.details);
         //Fetch properties
         name.setText(current_file.getName());
         SimpleDateFormat format = new SimpleDateFormat("dd-MMM-yyyy hh:mm:ss a");
@@ -1179,7 +1180,7 @@ public class FileViewer extends AppCompatActivity
                     final File current_file = files[first + i];
                     if (!current_file.exists())
                         continue;
-                    holder.icon = (ImageView) view.getChildAt(i).findViewById(R.id.icon);
+                    holder.icon = view.getChildAt(i).findViewById(R.id.icon);
                     if (current_file.isDirectory()) {
                         holder.details.setText("");
                         File temp[] = current_file.listFiles();
@@ -1687,10 +1688,10 @@ public class FileViewer extends AppCompatActivity
                 // Creates a ViewHolder and store references to the child views we want to bind data to.
                 view = mInflater.inflate(R.layout.list_item, parent, false);
                 holder = new ViewHolder();
-                holder.name = (TextView) view.findViewById(R.id.name);
-                holder.date = (TextView) view.findViewById(R.id.date);
-                holder.details = (TextView) view.findViewById(R.id.details);
-                holder.icon = (ImageView) view.findViewById(R.id.icon);
+                holder.name = view.findViewById(R.id.name);
+                holder.date = view.findViewById(R.id.date);
+                holder.details = view.findViewById(R.id.details);
+                holder.icon = view.findViewById(R.id.icon);
                 view.setTag(holder);
             } else {
                 // Get the ViewHolder back to get fast access to the child views

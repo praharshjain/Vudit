@@ -205,4 +205,11 @@
         android:animationCache="false"
         android:scrollingCache="false"
         android:smoothScrollbar="true" />
+
+    <TextView android:id="@+id/empty"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:textSize="25dp"
+        android:text="No Items" />
 </LinearLayout>
