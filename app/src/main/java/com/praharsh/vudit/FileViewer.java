@@ -26,19 +26,6 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.StatFs;
 import android.provider.MediaStore;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.navigation.NavigationView;
-import com.google.android.material.snackbar.Snackbar;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.core.content.FileProvider;
-import androidx.documentfile.provider.DocumentFile;
-import androidx.core.view.GravityCompat;
-import androidx.core.view.MenuItemCompat;
-import androidx.drawerlayout.widget.DrawerLayout;
-import androidx.appcompat.app.ActionBarDrawerToggle;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.Toolbar;
 import android.view.ContextMenu;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
@@ -65,7 +52,20 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
+import androidx.core.view.GravityCompat;
+import androidx.core.view.MenuItemCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+
 import com.bumptech.glide.Glide;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.snackbar.Snackbar;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
@@ -81,7 +81,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Stack;
 import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
@@ -106,13 +108,16 @@ public class FileViewer extends AppCompatActivity
     private FileFilter fileFilter;
     private Intent in;
     private TextView current_duration, total_duration, title;
-    private ImageView album_art, icon;
     private ImageButton btn_play, btn_rev, btn_forward;
     private SeekBar seek;
     private static final String tempPath = Environment.getExternalStorageDirectory().getPath() + "/Vudit/temp/";
     private byte data[];
     private int sortCriterion = 0;
     private boolean isValid, sortDesc = false, listFoldersFirst = true, storeRecentItems = true, showHiddenFiles = true;
+    private static final String requiredpermissions[] = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+    };
     //Comparators for sorting
     private Comparator<File> byName = new Comparator<File>() {
         @Override
@@ -294,12 +299,20 @@ public class FileViewer extends AppCompatActivity
         if (sdcard != null && sdcard.length() > 0) {
             navigationView.getMenu().findItem(R.id.nav_sdcard).setVisible(true);
             storagePaths.add(sdcard);
-            startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), SDCARD_WRITE_PERMISSION_REQUEST_CODE);
+            if (SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), SDCARD_WRITE_PERMISSION_REQUEST_CODE);
+            }
         }
+        //Check if root folder is readable
+        File root = getRootDirectory();
+        if (root != null && root.canRead()) {
+            navigationView.getMenu().findItem(R.id.nav_root).setVisible(true);
+        }
+
         for (int i = 0; i < storagePaths.size(); i++) {
             String path = storagePaths.get(i);
             final File f = new File(path);
-            if (f != null && f.exists()) {
+            if (f.exists()) {
                 RelativeLayout storageView = (RelativeLayout) getLayoutInflater().inflate(R.layout.storage_view, null, false);
                 TextView details = storageView.findViewById(R.id.storage_details);
                 TextView name = storageView.findViewById(R.id.storage_name);
@@ -315,20 +328,22 @@ public class FileViewer extends AppCompatActivity
                 } else {
                     name.setText("External Storage");
                 }
-                LinearLayout l = findViewById(R.id.home_view);
                 storageView.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         updateFiles(f);
                     }
                 });
-                l.addView(storageView, 0);
+                homeViewLayout.addView(storageView, 0);
             }
         }
 
         in = getIntent();
         if (Intent.ACTION_VIEW.equals(in.getAction()) && in.getType() != null) {
-            openFile(new File(in.getData().getPath()));
+            Uri uri = in.getData();
+            if (uri != null) {
+                openFile(new File(uri.getPath()));
+            }
         } else {
             switchToHomeView();
         }
@@ -410,9 +425,7 @@ public class FileViewer extends AppCompatActivity
         if (id == R.id.nav_home) {
             switchToHomeView();
         } else if (id == R.id.nav_root) {
-            File f = Environment.getRootDirectory();
-            while (f.getParentFile() != null)
-                f = f.getParentFile();
+            File f = getRootDirectory();
             updateFiles(f);
         } else if (id == R.id.nav_sdcard) {
             String sdcard = System.getenv("SECONDARY_STORAGE");
@@ -706,12 +719,10 @@ public class FileViewer extends AppCompatActivity
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
-        if (resultCode != SDCARD_WRITE_PERMISSION_REQUEST_CODE)
-            return;
-        else {
-            if (SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                Uri treeUri = resultData.getData();
-                DocumentFile pickedDir = DocumentFile.fromTreeUri(this, treeUri);
+        super.onActivityResult(requestCode, resultCode, resultData);
+        if (resultCode == SDCARD_WRITE_PERMISSION_REQUEST_CODE && SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            Uri treeUri = resultData.getData();
+            if (treeUri != null) {
                 grantUriPermission(getPackageName(), treeUri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
                 getContentResolver().takePersistableUriPermission(treeUri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
             }
@@ -768,6 +779,7 @@ public class FileViewer extends AppCompatActivity
                     e.printStackTrace();
                 }
                 if (isValid) {
+                    ImageView album_art, icon;
                     final View player = getLayoutInflater().inflate(R.layout.music_player, null);
                     player.findViewById(R.id.icon);
                     btn_play = player.findViewById(R.id.btn_play);
@@ -786,17 +798,15 @@ public class FileViewer extends AppCompatActivity
                     }
                     int duration = mp.getDuration();
                     seek.setMax(duration);
-                    total_duration.setText(String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes(duration), TimeUnit.MILLISECONDS.toSeconds(duration) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration))));
+                    total_duration.setText(getFormattedTimeDuration(duration));
                     final Handler handler = new Handler();
                     //Make sure you update Seekbar on UI thread
                     final Runnable updateseek = new Runnable() {
                         @Override
                         public void run() {
-                            if (mp != null) {
-                                int pos = mp.getCurrentPosition();
-                                seek.setProgress(pos);
-                                current_duration.setText(String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes(pos), TimeUnit.MILLISECONDS.toSeconds(pos) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(pos))));
-                            }
+                            int pos = mp.getCurrentPosition();
+                            seek.setProgress(pos);
+                            current_duration.setText(getFormattedTimeDuration(pos));
                             handler.postDelayed(this, 1000);
                         }
                     };
@@ -804,9 +814,9 @@ public class FileViewer extends AppCompatActivity
                     seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
                         @Override
                         public void onProgressChanged(SeekBar seekBar, int position, boolean fromUser) {
-                            if (mp != null && fromUser) {
+                            if (fromUser) {
                                 mp.seekTo(position);
-                                current_duration.setText(String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes(position), TimeUnit.MILLISECONDS.toSeconds(position) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(position))));
+                                current_duration.setText(getFormattedTimeDuration(position));
                             }
                         }
 
@@ -909,14 +919,16 @@ public class FileViewer extends AppCompatActivity
                     in.putExtra("file", current_file.getPath());
                     startActivity(in);
                 } else {
-                    Uri uri = FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName(), current_file);
-                    in.setDataAndType(uri, mimeType);
-                    in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    in.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     try {
+                        Uri uri = FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName(), current_file);
+                        in.setDataAndType(uri, mimeType);
+                        in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        in.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                         startActivity(in);
                     } catch (ActivityNotFoundException e) {
                         showMsg("No handler for this type of file.", 1);
+                    } catch (Exception e) {
+                        showMsg("Cannot open this file.", 1);
                     }
                 }
             }
@@ -993,7 +1005,7 @@ public class FileViewer extends AppCompatActivity
                     bitrate = meta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE);
                     bitrate = ((bitrate == null || "".equals(bitrate)) ? "Unknown" : bitrate);
                     meta.release();
-                    info += "\nTrack Duration : " + String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes(duration), TimeUnit.MILLISECONDS.toSeconds(duration) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
+                    info += "\nTrack Duration : " + getFormattedTimeDuration(duration);
                     info += "\nAlbum : " + album;
                     info += "\nArtist : " + artist;
                     info += "\nGenre : " + genre;
@@ -1026,14 +1038,17 @@ public class FileViewer extends AppCompatActivity
                     mp.release();
                     bitrate = meta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE);
                     bitrate = ((bitrate == null || "".equals(bitrate)) ? "Unknown" : bitrate);
-                    String frame_rate = meta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE);
+                    String frame_rate = "";
+                    if (SDK_INT >= Build.VERSION_CODES.M) {
+                        frame_rate = meta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_CAPTURE_FRAMERATE);
+                    }
                     frame_rate = ((frame_rate == null || "".equals(frame_rate)) ? "Unknown" : frame_rate);
                     String height = meta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT);
                     height = ((height == null || "".equals(height)) ? "Unknown" : height);
                     String width = meta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH);
                     width = ((width == null || "".equals(width)) ? "Unknown" : width);
                     meta.release();
-                    info += "\nTrack Duration : " + String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes(duration), TimeUnit.MILLISECONDS.toSeconds(duration) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
+                    info += "\nTrack Duration : " + getFormattedTimeDuration(duration);
                     info += "\nBitrate : " + bitrate;
                     info += "\nWidth : " + width;
                     info += "\nHeight : " + height;
@@ -1106,7 +1121,9 @@ public class FileViewer extends AppCompatActivity
     }
 
     private boolean updateFiles(File f) {
-        if (f.exists() && f.listFiles() != null) {
+        if (f != null && f.exists() && f.listFiles() != null) {
+            f.setReadable(true);
+            f.setWritable(true);
             file = f;
             files = f.listFiles();
             files = sortFiles(files);
@@ -1120,7 +1137,7 @@ public class FileViewer extends AppCompatActivity
         return false;
     }
 
-    private boolean deleteFiles(File f) {
+    private static boolean deleteFiles(File f) {
         if (f == null || !f.exists())
             return false;
         f.setWritable(true);
@@ -1347,23 +1364,39 @@ public class FileViewer extends AppCompatActivity
         return f;
     }
 
-    private boolean checkAndRequestPermissions() {
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        int index = 0;
+        Map<String, Integer> permissionsMap = new HashMap<String, Integer>();
+        for (String permission : permissions) {
+            permissionsMap.put(permission, grantResults[index]);
+            index++;
+        }
+        for (String permission : requiredpermissions) {
+            if (permissionsMap.get(permission) != 1) {
+                showMsg("Permissions not granted", 0);
+                finish();
+                return;
+            }
+        }
+    }
+
+    private List<String> getNeededPermissions() {
+        List<String> listPermissionsNeeded = new ArrayList<>();
         if (SDK_INT >= Build.VERSION_CODES.M) {
-            int permissionStorage = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE);
-            int permissionWriteStorage = ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            List<String> listPermissionsNeeded = new ArrayList<>();
-            if (permissionStorage != PackageManager.PERMISSION_GRANTED) {
-                listPermissionsNeeded.add(Manifest.permission.READ_EXTERNAL_STORAGE);
+            for (String permission : requiredpermissions) {
+                if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                    listPermissionsNeeded.add(permission);
+                }
             }
-            if (permissionWriteStorage != PackageManager.PERMISSION_GRANTED) {
-                listPermissionsNeeded.add(Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            }
-            if (!listPermissionsNeeded.isEmpty()) {
-                ActivityCompat.requestPermissions(this, listPermissionsNeeded.toArray(new String[listPermissionsNeeded.size()]), REQUEST_ID_MULTIPLE_PERMISSIONS);
-                return false;
-            } else {
-                return true;
-            }
+        }
+        return listPermissionsNeeded;
+    }
+
+    private boolean checkAndRequestPermissions() {
+        List<String> neededPermissions = getNeededPermissions();
+        if (!neededPermissions.isEmpty()) {
+            ActivityCompat.requestPermissions(this, neededPermissions.toArray(new String[neededPermissions.size()]), REQUEST_ID_MULTIPLE_PERMISSIONS);
+            return false;
         }
         return true;
     }
@@ -1404,7 +1437,7 @@ public class FileViewer extends AppCompatActivity
         return dirName;
     }
 
-    private void freeMemory(boolean deleteTempFiles) {
+    private static void freeMemory(boolean deleteTempFiles) {
         //remove temp files
         if (deleteTempFiles) {
             deleteFiles(new File(tempPath));
@@ -1422,20 +1455,20 @@ public class FileViewer extends AppCompatActivity
             Snackbar.make(findViewById(R.id.list), msg, Snackbar.LENGTH_LONG).setAction("Action", null).show();
     }
 
-    private String displaySize(long bytes) {
+    private static String displaySize(long bytes) {
         if (bytes > 1073741824) return String.format("%.02f", (float) bytes / 1073741824) + " GB";
         else if (bytes > 1048576) return String.format("%.02f", (float) bytes / 1048576) + " MB";
         else if (bytes > 1024) return String.format("%.02f", (float) bytes / 1024) + " KB";
         else return bytes + " B";
     }
 
-    private String extension(String name) {
+    private static String extension(String name) {
         int i = name.lastIndexOf(".");
         if (i > 0) return name.substring(i + 1).toLowerCase();
         else return "";
     }
 
-    private String getFilePermissions(File file) {
+    private static String getFilePermissions(File file) {
         String s = "";
         if (file.getParent() != null) {
             try {
@@ -1480,7 +1513,11 @@ public class FileViewer extends AppCompatActivity
         }
     }
 
-    private String md5(String file_path) {
+    private static String getFormattedTimeDuration(long duration) {
+        return String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes(duration), TimeUnit.MILLISECONDS.toSeconds(duration) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
+    }
+
+    private static String md5(String file_path) {
         try {
             FileInputStream fs = new FileInputStream(file_path);
             MessageDigest md = MessageDigest.getInstance("MD5");
@@ -1537,14 +1574,34 @@ public class FileViewer extends AppCompatActivity
         return BitmapFactory.decodeFile(pathToFile, options);
     }
 
-    private long getAvailableMemoryInBytes(String filePath) {
+    private static long getAvailableMemoryInBytes(String filePath) {
         StatFs stat = new StatFs(filePath);
         return stat.getBlockSize() * (long) stat.getAvailableBlocks();
     }
 
-    private long getTotalMemoryInBytes(String filePath) {
+    private static long getTotalMemoryInBytes(String filePath) {
         StatFs stat = new StatFs(filePath);
         return stat.getBlockSize() * (long) stat.getBlockCount();
+    }
+
+    private static File getRootDirectory() {
+        File f = Environment.getRootDirectory();
+        f.setReadable(true);
+        if (!f.canRead()) {
+            return null;
+        }
+        while (true) {
+            File parent = f.getParentFile();
+            if (parent == null || !parent.exists()) {
+                break;
+            }
+            parent.setReadable(true);
+            if (!parent.canRead()) {
+                break;
+            }
+            f = parent;
+        }
+        return f;
     }
 
     private void listMediaFiles(int type) {
@@ -1625,7 +1682,7 @@ public class FileViewer extends AppCompatActivity
         lv.setVisibility(View.GONE);
     }
 
-    private String[] getMimeTypeQueryArgs(String extArr[]) {
+    private static String[] getMimeTypeQueryArgs(String extArr[]) {
         int n = extArr.length;
         String mimeType = null;
         ArrayList<String> selectionArgsList = new ArrayList<>();
@@ -1640,7 +1697,7 @@ public class FileViewer extends AppCompatActivity
         return selectionArgs;
     }
 
-    private String getMimeTypeQuery(String[] selectionArgs) {
+    private static String getMimeTypeQuery(String[] selectionArgs) {
         int i, n = selectionArgs.length;
         String selectionQuery = MediaStore.Files.FileColumns.MIME_TYPE + "=? ";
         for (i = 1; i < n; i++) {
