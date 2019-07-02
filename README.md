@@ -1,4 +1,6 @@
 [![FOSSA Status](https://app.fossa.io/api/projects/git%2Bgithub.com%2Fpraharshjain%2FVudit.svg?type=shield)](https://app.fossa.io/projects/git%2Bgithub.com%2Fpraharshjain%2FVudit?ref=badge_shield)
+[![Known Vulnerabilities](https://snyk.io/test/github/praharshjain/Vudit/badge.svg)](https://snyk.io/test/github/praharshjain/Vudit)
+
 
 <img src="https://github.com/praharshjain/Vudit/blob/master/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="40">&nbsp;&nbsp;Vudit
 ==========
