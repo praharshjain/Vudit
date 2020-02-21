@@ -1,9 +1,7 @@
 package com.praharsh.vudit;
 
 import android.graphics.Bitmap;
-import android.os.Build;
 import android.os.Bundle;
-import androidx.appcompat.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -11,6 +9,8 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+
+import androidx.appcompat.app.AppCompatActivity;
 
 public class WebViewBaseActivity extends AppCompatActivity {
     protected WebView wv;
@@ -43,11 +43,9 @@ public class WebViewBaseActivity extends AppCompatActivity {
         settings.setAppCacheEnabled(true);
         settings.setDatabaseEnabled(true);
         settings.setPluginState(WebSettings.PluginState.ON);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            settings.setAllowFileAccessFromFileURLs(true);
-            settings.setAllowUniversalAccessFromFileURLs(true);
-            settings.setMediaPlaybackRequiresUserGesture(false);
-        }
+        settings.setAllowFileAccessFromFileURLs(true);
+        settings.setAllowUniversalAccessFromFileURLs(true);
+        settings.setMediaPlaybackRequiresUserGesture(false);
     }
 
     @Override

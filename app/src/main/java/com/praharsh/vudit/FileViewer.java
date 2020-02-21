@@ -587,8 +587,10 @@ public class FileViewer extends AppCompatActivity
                     MimeTypeMap myMime = MimeTypeMap.getSingleton();
                     Intent in = new Intent(Intent.ACTION_VIEW);
                     String mimeType = myMime.getMimeTypeFromExtension(Util.extension(current_file.getName()));
-                    in.setDataAndType(Uri.fromFile(current_file), mimeType);
-                    in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    Uri uri = FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName(), current_file);
+                    in.setDataAndType(uri, mimeType);
+                    in.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    in.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     try {
                         startActivity(in);
                     } catch (ActivityNotFoundException e) {
@@ -895,7 +897,7 @@ public class FileViewer extends AppCompatActivity
                     try {
                         Uri uri = FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName(), current_file);
                         in.setDataAndType(uri, mimeType);
-                        in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        in.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                         in.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                         startActivity(in);
                     } catch (ActivityNotFoundException e) {
@@ -1514,7 +1516,7 @@ public class FileViewer extends AppCompatActivity
             case 4: //documents
                 uri = MediaStore.Files.getContentUri("external");
                 toolbarTitle = "Documents";
-                List<String> extList = Util.doc_ext;
+                List<String> extList = new ArrayList<>(Util.doc_ext);
                 extList.addAll(Util.xl_ext);
                 extList.addAll(Util.ppt_ext);
                 extList.addAll(Util.opendoc_ext);
