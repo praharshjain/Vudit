@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.praharsh.vudit"
-    android:versionCode="1"
-    android:versionName="1.0">
+    package="com.praharsh.vudit">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
@@ -272,6 +270,13 @@
             android:icon="@mipmap/ic_launcher"
             android:label="VideoPlayer"
             android:screenOrientation="sensorLandscape"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity
+            android:name=".ImageViewer"
+            android:alwaysRetainTaskState="true"
+            android:hardwareAccelerated="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="ImageViewer"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
             android:name=".TextViewer"

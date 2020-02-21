@@ -12,7 +12,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaMetadataRetriever;
@@ -24,7 +23,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
-import android.os.StatFs;
 import android.provider.MediaStore;
 import android.view.ContextMenu;
 import android.view.ContextThemeWrapper;
@@ -63,6 +61,8 @@ import androidx.core.view.MenuItemCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.bumptech.glide.Glide;
+import com.github.piasy.biv.BigImageViewer;
+import com.github.piasy.biv.loader.glide.GlideImageLoader;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
@@ -75,7 +75,6 @@ import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -85,7 +84,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
-import java.util.concurrent.TimeUnit;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -114,7 +112,7 @@ public class FileViewer extends AppCompatActivity
     private byte data[];
     private int sortCriterion = 0;
     private boolean isValid, sortDesc = false, listFoldersFirst = true, storeRecentItems = true, showHiddenFiles = true;
-    private static final String requiredpermissions[] = {
+    private static final String[] requiredpermissions = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
     };
@@ -158,18 +156,6 @@ public class FileViewer extends AppCompatActivity
             else return 0;
         }
     };
-    //supported extensions
-    private static final String audio_ext[] = {"mp3", "oog", "wav", "mid", "m4a", "amr"};
-    private static final String image_ext[] = {"png", "jpg", "gif", "bmp", "jpeg", "webp"};
-    private static final String video_ext[] = {"mp4", "3gp", "mkv", "webm", "flv", "m4v"};
-    private static final String web_ext[] = {"htm", "html", "js", "xml"};
-    private static final String opendoc_ext[] = {"odt", "ott", "odp", "otp", "ods", "ots", "fodt", "fods", "fodp"};
-    private static final String txt_ext[] = {"ascii", "asm", "awk", "bash", "bat", "bf", "bsh", "c", "cert", "cgi", "clj", "conf", "cpp", "cs", "css", "csv", "elr", "go", "h", "hs", "htaccess", "htm", "html", "ini", "java", "js", "json", "key", "lisp", "log", "lua", "md", "mkdn", "pem", "php", "pl", "py", "rb", "readme", "scala", "sh", "sql", "srt", "sub", "tex", "txt", "vb", "vbs", "vhdl", "wollok", "xml", "xsd", "xsl", "yaml", "iml", "gitignore", "gradle"};
-    //only icon
-    private static final String archive_ext[] = {"zip", "jar", "rar", "tar", "gz", "lz", "7z", "tgz", "tlz", "war", "ace", "cab", "dmg", "tar.gz"};
-    private static final String doc_ext[] = {"doc", "docm", "docx", "dot", "dotm", "dotx", "odt", "ott", "fodt", "rtf", "wps"};
-    private static final String xl_ext[] = {"xls", "xlsb", "xlsm", "xlt", "xlsx", "xltm", "xltx", "xlw", "ods", "ots", "fods"};
-    private static final String ppt_ext[] = {"ppt", "pptx", "pptm", "pps", "ppsx", "ppsm", "pot", "potx", "potm", "odp", "otp", "fodp"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -179,6 +165,7 @@ public class FileViewer extends AppCompatActivity
             finish();
             return;
         }
+        BigImageViewer.initialize(GlideImageLoader.with(getApplicationContext()));
         //Setup UI
         setContentView(R.layout.file_viewer);
         toolbar = findViewById(R.id.toolbar);
@@ -317,11 +304,11 @@ public class FileViewer extends AppCompatActivity
                 TextView details = storageView.findViewById(R.id.storage_details);
                 TextView name = storageView.findViewById(R.id.storage_name);
                 ProgressBar storageBar = storageView.findViewById(R.id.storage_bar);
-                Long totalMemory = getTotalMemoryInBytes(path), freeMemory = getAvailableMemoryInBytes(path);
+                Long totalMemory = Util.getTotalMemoryInBytes(path), freeMemory = Util.getAvailableMemoryInBytes(path);
                 float usedMemory = totalMemory - freeMemory;
                 int percent = (int) ((usedMemory / totalMemory) * 100);
                 storageBar.setProgress(percent);
-                String memoryDetails = displaySize(freeMemory) + " free out of " + displaySize(totalMemory);
+                String memoryDetails = Util.displaySize(freeMemory) + " free out of " + Util.displaySize(totalMemory);
                 details.setText(memoryDetails);
                 if (path.equals(Environment.getExternalStorageDirectory().getPath())) {
                     name.setText("Internal Storage");
@@ -570,8 +557,8 @@ public class FileViewer extends AppCompatActivity
                 menu.add(Menu.NONE, 1, Menu.NONE, "Open");
             } else {
                 menu.add(Menu.NONE, 1, Menu.NONE, "Open with default system action");
-                String ext = extension(current_file.getName());
-                if (Arrays.asList(web_ext).contains(ext))
+                String ext = Util.extension(current_file.getName());
+                if (Util.web_ext.contains(ext))
                     menu.add(Menu.NONE, 2, Menu.NONE, "Preview");
                 menu.add(Menu.NONE, 3, Menu.NONE, "Share");
             }
@@ -599,7 +586,7 @@ public class FileViewer extends AppCompatActivity
                 } else {
                     MimeTypeMap myMime = MimeTypeMap.getSingleton();
                     Intent in = new Intent(Intent.ACTION_VIEW);
-                    String mimeType = myMime.getMimeTypeFromExtension(extension(current_file.getName()));
+                    String mimeType = myMime.getMimeTypeFromExtension(Util.extension(current_file.getName()));
                     in.setDataAndType(Uri.fromFile(current_file), mimeType);
                     in.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                     try {
@@ -618,7 +605,7 @@ public class FileViewer extends AppCompatActivity
                 Intent share = new Intent();
                 share.setAction(Intent.ACTION_SEND);
                 MimeTypeMap myMime = MimeTypeMap.getSingleton();
-                String mimeType = myMime.getMimeTypeFromExtension(extension(current_file.getName()));
+                String mimeType = myMime.getMimeTypeFromExtension(Util.extension(current_file.getName()));
                 share.setType(mimeType);
                 share.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(current_file));
                 try {
@@ -745,7 +732,7 @@ public class FileViewer extends AppCompatActivity
             updateFiles(current_file);
         } else if (current_file.isFile()) {
             isValid = true;
-            String ext = extension(current_file.getName());
+            String ext = Util.extension(current_file.getName());
             if ("pdf".equals(ext)) {
                 in = new Intent(FileViewer.this, DOCViewer.class);
                 in.putExtra("file", current_file.getPath());
@@ -768,7 +755,7 @@ public class FileViewer extends AppCompatActivity
                 Intent in = new Intent(FileViewer.this, HTMLViewer.class);
                 in.putExtra("file", current_file.getPath());
                 startActivity(in);
-            } else if (Arrays.asList(audio_ext).contains(ext)) {
+            } else if (Util.audio_ext.contains(ext)) {
                 try {
                     mp.setDataSource(current_file.getPath());
                     mp.prepare();
@@ -798,7 +785,7 @@ public class FileViewer extends AppCompatActivity
                     }
                     int duration = mp.getDuration();
                     seek.setMax(duration);
-                    total_duration.setText(getFormattedTimeDuration(duration));
+                    total_duration.setText(Util.getFormattedTimeDuration(duration));
                     final Handler handler = new Handler();
                     //Make sure you update Seekbar on UI thread
                     final Runnable updateseek = new Runnable() {
@@ -806,7 +793,7 @@ public class FileViewer extends AppCompatActivity
                         public void run() {
                             int pos = mp.getCurrentPosition();
                             seek.setProgress(pos);
-                            current_duration.setText(getFormattedTimeDuration(pos));
+                            current_duration.setText(Util.getFormattedTimeDuration(pos));
                             handler.postDelayed(this, 1000);
                         }
                     };
@@ -816,7 +803,7 @@ public class FileViewer extends AppCompatActivity
                         public void onProgressChanged(SeekBar seekBar, int position, boolean fromUser) {
                             if (fromUser) {
                                 mp.seekTo(position);
-                                current_duration.setText(getFormattedTimeDuration(position));
+                                current_duration.setText(Util.getFormattedTimeDuration(position));
                             }
                         }
 
@@ -883,29 +870,15 @@ public class FileViewer extends AppCompatActivity
                 } else {
                     showMsg("Invalid music file", 1);
                 }
-            } else if (Arrays.asList(image_ext).contains(ext)) {
-                AlertDialog.Builder preview_dialog = new AlertDialog.Builder(new ContextThemeWrapper(FileViewer.this, android.R.style.Theme_Black));
-                View image_view = getLayoutInflater().inflate(R.layout.image_viewer, null);
-                final ImageView preview = image_view.findViewById(R.id.preview);
-                BitmapFactory.Options options = new BitmapFactory.Options();
-                options.inJustDecodeBounds = true;
-                //Returns null, sizes are in the options variable
-                BitmapFactory.decodeFile(current_file.getPath(), options);
-                int height = options.outHeight;
-                int width = options.outWidth;
-                while (height * width * 4 > 4 * 1024 * 1024) {
-                    height /= 2;
-                    width /= 2;
-                }
-                preview.setImageBitmap(decodeSampledBitmap(current_file.getPath(), width, height));
-                preview_dialog.setTitle(current_file.getName());
-                preview_dialog.setView(image_view);
-                preview_dialog.show();
-            } else if (Arrays.asList(video_ext).contains(ext)) {
+            } else if (Util.image_ext.contains(ext)) {
+                in = new Intent(FileViewer.this, ImageViewer.class);
+                in.putExtra("file", current_file.getPath());
+                startActivity(in);
+            } else if (Util.video_ext.contains(ext)) {
                 in = new Intent(FileViewer.this, VideoPlayer.class);
                 in.putExtra("file", current_file.getPath());
                 startActivity(in);
-            } else if (Arrays.asList(opendoc_ext).contains(ext)) {
+            } else if (Util.opendoc_ext.contains(ext)) {
                 in = new Intent(FileViewer.this, DOCViewer.class);
                 in.putExtra("file", current_file.getPath());
                 in.putExtra("isPDF", false);
@@ -913,8 +886,8 @@ public class FileViewer extends AppCompatActivity
             } else {
                 MimeTypeMap myMime = MimeTypeMap.getSingleton();
                 Intent in = new Intent(Intent.ACTION_VIEW);
-                String mimeType = myMime.getMimeTypeFromExtension(extension(current_file.getName()));
-                if ((mimeType != null && mimeType.contains("text")) || Arrays.asList(txt_ext).contains(ext)) {
+                String mimeType = myMime.getMimeTypeFromExtension(Util.extension(current_file.getName()));
+                if ((mimeType != null && mimeType.contains("text")) || Util.txt_ext.contains(ext)) {
                     in = new Intent(FileViewer.this, TextViewer.class);
                     in.putExtra("file", current_file.getPath());
                     startActivity(in);
@@ -964,11 +937,11 @@ public class FileViewer extends AppCompatActivity
         if (current_file.isFile()) {
             isValid = true;
             MimeTypeMap myMime = MimeTypeMap.getSingleton();
-            String mimeType = myMime.getMimeTypeFromExtension(extension(current_file.getName()));
+            String mimeType = myMime.getMimeTypeFromExtension(Util.extension(current_file.getName()));
             mimeType = ((mimeType == null || mimeType.equals("")) ? "Unknown" : mimeType);
             type.setText(mimeType);
-            size.setText(displaySize(current_file.length()));
-            String ext = extension(current_file.getName());
+            size.setText(Util.displaySize(current_file.length()));
+            String ext = Util.extension(current_file.getName());
             if ("apk".equals(ext)) {
                 String path = current_file.getPath();
                 PackageManager pm = getPackageManager();
@@ -980,7 +953,7 @@ public class FileViewer extends AppCompatActivity
                 info += "\nVersion Name : " + pi.versionName;
                 info += "\nVersion Code : " + pi.versionCode;
                 info += "\nApp Installed : " + (appInstalled(pi.packageName) ? "Yes" : "No");
-            } else if (Arrays.asList(audio_ext).contains(ext)) {
+            } else if (Util.audio_ext.contains(ext)) {
                 properties_dialog.setIcon(R.drawable.file_music);
                 try {
                     mp.setDataSource(current_file.getPath());
@@ -1005,7 +978,7 @@ public class FileViewer extends AppCompatActivity
                     bitrate = meta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE);
                     bitrate = ((bitrate == null || "".equals(bitrate)) ? "Unknown" : bitrate);
                     meta.release();
-                    info += "\nTrack Duration : " + getFormattedTimeDuration(duration);
+                    info += "\nTrack Duration : " + Util.getFormattedTimeDuration(duration);
                     info += "\nAlbum : " + album;
                     info += "\nArtist : " + artist;
                     info += "\nGenre : " + genre;
@@ -1014,7 +987,7 @@ public class FileViewer extends AppCompatActivity
                 } else {
                     info += "\nInvalid File";
                 }
-            } else if (Arrays.asList(image_ext).contains(ext)) {
+            } else if (Util.image_ext.contains(ext)) {
                 properties_dialog.setIcon(new BitmapDrawable(getResources(), ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(current_file.getPath()), 50, 50)));
                 BitmapFactory.Options options = new BitmapFactory.Options();
                 options.inJustDecodeBounds = true;
@@ -1022,7 +995,7 @@ public class FileViewer extends AppCompatActivity
                 BitmapFactory.decodeFile(current_file.getPath(), options);
                 info += "\nWidth : " + options.outWidth + " pixels";
                 info += "\nHeight : " + options.outHeight + " pixels";
-            } else if (Arrays.asList(video_ext).contains(ext)) {
+            } else if (Util.video_ext.contains(ext)) {
                 properties_dialog.setIcon(new BitmapDrawable(getResources(), ThumbnailUtils.createVideoThumbnail(current_file.getPath(), MediaStore.Images.Thumbnails.MINI_KIND)));
                 try {
                     mp.setDataSource(current_file.getPath());
@@ -1048,7 +1021,7 @@ public class FileViewer extends AppCompatActivity
                     String width = meta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH);
                     width = ((width == null || "".equals(width)) ? "Unknown" : width);
                     meta.release();
-                    info += "\nTrack Duration : " + getFormattedTimeDuration(duration);
+                    info += "\nTrack Duration : " + Util.getFormattedTimeDuration(duration);
                     info += "\nBitrate : " + bitrate;
                     info += "\nWidth : " + width;
                     info += "\nHeight : " + height;
@@ -1074,7 +1047,7 @@ public class FileViewer extends AppCompatActivity
                 public void run() {
                     Message msg = new Message();
                     Bundle data = new Bundle();
-                    data.putString("MD5", md5(current_file.getPath()));
+                    data.putString("MD5", Util.md5(current_file.getPath()));
                     msg.setData(data);
                     msg.setTarget(h);
                     h.sendMessage(msg);
@@ -1102,7 +1075,7 @@ public class FileViewer extends AppCompatActivity
                 public void run() {
                     Message msg = new Message();
                     Bundle data = new Bundle();
-                    data.putString("folder_size", displaySize(getFolderSize(current_file)));
+                    data.putString("folder_size", Util.displaySize(getFolderSize(current_file)));
                     msg.setData(data);
                     msg.setTarget(h);
                     h.sendMessage(msg);
@@ -1205,8 +1178,8 @@ public class FileViewer extends AppCompatActivity
                         holder.details.setText(n + " items");
                         holder.icon.setImageResource(n > 0 ? R.drawable.folder : R.drawable.folder_empty);
                     } else {
-                        holder.details.setText(displaySize(current_file.length()));
-                        String ext = extension(current_file.getName());
+                        holder.details.setText(Util.displaySize(current_file.length()));
+                        String ext = Util.extension(current_file.getName());
                         if ("apk".equals(ext)) {
                             String path = current_file.getPath();
                             PackageManager pm = getPackageManager();
@@ -1222,17 +1195,17 @@ public class FileViewer extends AppCompatActivity
                             holder.icon.setImageResource(R.drawable.file_csv);
                         } else if ("sqlite".equals(ext)) {
                             holder.icon.setImageResource(R.drawable.file_sqlite);
-                        } else if (Arrays.asList(audio_ext).contains(ext)) {
+                        } else if (Util.audio_ext.contains(ext)) {
                             holder.icon.setImageResource(R.drawable.file_music);
-                        } else if (Arrays.asList(image_ext).contains(ext) || Arrays.asList(video_ext).contains(ext)) {
+                        } else if (Util.image_ext.contains(ext) || Util.video_ext.contains(ext)) {
                             Glide.with(getApplicationContext()).load(Uri.fromFile(current_file)).placeholder(R.drawable.loading).into(holder.icon);
-                        } else if (Arrays.asList(archive_ext).contains(ext)) {
+                        } else if (Util.archive_ext.contains(ext)) {
                             holder.icon.setImageResource(R.drawable.file_archive);
-                        } else if (Arrays.asList(doc_ext).contains(ext)) {
+                        } else if (Util.doc_ext.contains(ext)) {
                             holder.icon.setImageResource(R.drawable.file_doc);
-                        } else if (Arrays.asList(xl_ext).contains(ext)) {
+                        } else if (Util.xl_ext.contains(ext)) {
                             holder.icon.setImageResource(R.drawable.file_xl);
-                        } else if (Arrays.asList(ppt_ext).contains(ext)) {
+                        } else if (Util.ppt_ext.contains(ext)) {
                             holder.icon.setImageResource(R.drawable.file_ppt);
                         } else {
                             holder.icon.setImageResource(R.drawable.file_default);
@@ -1455,19 +1428,6 @@ public class FileViewer extends AppCompatActivity
             Snackbar.make(findViewById(R.id.list), msg, Snackbar.LENGTH_LONG).setAction("Action", null).show();
     }
 
-    private static String displaySize(long bytes) {
-        if (bytes > 1073741824) return String.format("%.02f", (float) bytes / 1073741824) + " GB";
-        else if (bytes > 1048576) return String.format("%.02f", (float) bytes / 1048576) + " MB";
-        else if (bytes > 1024) return String.format("%.02f", (float) bytes / 1024) + " KB";
-        else return bytes + " B";
-    }
-
-    private static String extension(String name) {
-        int i = name.lastIndexOf(".");
-        if (i > 0) return name.substring(i + 1).toLowerCase();
-        else return "";
-    }
-
     private static String getFilePermissions(File file) {
         String s = "";
         if (file.getParent() != null) {
@@ -1513,77 +1473,6 @@ public class FileViewer extends AppCompatActivity
         }
     }
 
-    private static String getFormattedTimeDuration(long duration) {
-        return String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes(duration), TimeUnit.MILLISECONDS.toSeconds(duration) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
-    }
-
-    private static String md5(String file_path) {
-        try {
-            FileInputStream fs = new FileInputStream(file_path);
-            MessageDigest md = MessageDigest.getInstance("MD5");
-            int bufferSize = 8192, bytes = 0;
-            byte[] buffer = new byte[bufferSize];
-            do {
-                bytes = fs.read(buffer, 0, bufferSize);
-                if (bytes > 0)
-                    md.update(buffer, 0, bytes);
-            } while (bytes > 0);
-            byte[] Md5Sum = md.digest();
-            StringBuilder hexString = new StringBuilder();
-            for (int i = 0; i < Md5Sum.length; i++) {
-                String hex = Integer.toHexString(Md5Sum[i] & 0xFF);
-                if (hex.length() == 1) {
-                    hexString.append('0');
-                }
-                hexString.append(hex);
-            }
-            return hexString.toString().toUpperCase();
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "";
-        }
-    }
-
-    private static int calculateSampleSize(BitmapFactory.Options options, int reqWidth, int reqHeight) {
-        // Raw height and width of image
-        final int height = options.outHeight;
-        final int width = options.outWidth;
-        int inSampleSize = 1;
-        if (height > reqHeight || width > reqWidth) {
-            final int halfHeight = height / 2;
-            final int halfWidth = width / 2;
-            // Calculate the largest inSampleSize value that is a power of 2 and keeps both
-            // height and width larger than the requested height and width.
-            while ((halfHeight / inSampleSize) > reqHeight
-                    && (halfWidth / inSampleSize) > reqWidth) {
-                inSampleSize *= 2;
-            }
-        }
-        return inSampleSize;
-    }
-
-    private static Bitmap decodeSampledBitmap(String pathToFile, int reqWidth, int reqHeight) {
-        // First decode with inJustDecodeBounds=true to check dimensions
-        final BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(pathToFile, options);
-        // Calculate inSampleSize
-        options.inSampleSize = calculateSampleSize(options, reqWidth, reqHeight);
-        // Decode bitmap with inSampleSize set
-        options.inJustDecodeBounds = false;
-        return BitmapFactory.decodeFile(pathToFile, options);
-    }
-
-    private static long getAvailableMemoryInBytes(String filePath) {
-        StatFs stat = new StatFs(filePath);
-        return stat.getBlockSize() * (long) stat.getAvailableBlocks();
-    }
-
-    private static long getTotalMemoryInBytes(String filePath) {
-        StatFs stat = new StatFs(filePath);
-        return stat.getBlockSize() * (long) stat.getBlockCount();
-    }
-
     private static File getRootDirectory() {
         File f = Environment.getRootDirectory();
         f.setReadable(true);
@@ -1625,25 +1514,25 @@ public class FileViewer extends AppCompatActivity
             case 4: //documents
                 uri = MediaStore.Files.getContentUri("external");
                 toolbarTitle = "Documents";
-                ArrayList<String> extList = new ArrayList(Arrays.asList(doc_ext));
-                extList.addAll(Arrays.asList(xl_ext));
-                extList.addAll(Arrays.asList(ppt_ext));
-                String[] extArr = new String[extList.size()];
-                extArr = extList.toArray(extArr);
-                selectionArgs = getMimeTypeQueryArgs(extArr);
-                selectionQuery = getMimeTypeQuery(selectionArgs);
+                List<String> extList = Util.doc_ext;
+                extList.addAll(Util.xl_ext);
+                extList.addAll(Util.ppt_ext);
+                extList.addAll(Util.opendoc_ext);
+                extList.add("pdf");
+                selectionArgs = Util.getMimeTypeQueryArgs(extList);
+                selectionQuery = Util.getMimeTypeQuery(selectionArgs);
                 break;
             case 5: //archives
                 uri = MediaStore.Files.getContentUri("external");
                 toolbarTitle = "Archives";
-                selectionArgs = getMimeTypeQueryArgs(archive_ext);
-                selectionQuery = getMimeTypeQuery(selectionArgs);
+                selectionArgs = Util.getMimeTypeQueryArgs(Util.archive_ext);
+                selectionQuery = Util.getMimeTypeQuery(selectionArgs);
                 break;
             case 6: //text files
                 uri = MediaStore.Files.getContentUri("external");
                 toolbarTitle = "Text files";
-                selectionArgs = getMimeTypeQueryArgs(txt_ext);
-                selectionQuery = getMimeTypeQuery(selectionArgs);
+                selectionArgs = Util.getMimeTypeQueryArgs(Util.txt_ext);
+                selectionQuery = Util.getMimeTypeQuery(selectionArgs);
                 break;
         }
         ContentResolver contentResolver = getContentResolver();
@@ -1682,31 +1571,7 @@ public class FileViewer extends AppCompatActivity
         lv.setVisibility(View.GONE);
     }
 
-    private static String[] getMimeTypeQueryArgs(String extArr[]) {
-        int n = extArr.length;
-        String mimeType = null;
-        ArrayList<String> selectionArgsList = new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            mimeType = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extArr[i]);
-            if (mimeType != null) {
-                selectionArgsList.add(mimeType);
-            }
-        }
-        String[] selectionArgs = new String[selectionArgsList.size()];
-        selectionArgs = selectionArgsList.toArray(selectionArgs);
-        return selectionArgs;
-    }
-
-    private static String getMimeTypeQuery(String[] selectionArgs) {
-        int i, n = selectionArgs.length;
-        String selectionQuery = MediaStore.Files.FileColumns.MIME_TYPE + "=? ";
-        for (i = 1; i < n; i++) {
-            selectionQuery += "OR " + MediaStore.Files.FileColumns.MIME_TYPE + "=? ";
-        }
-        return selectionQuery;
-    }
-
-    static class ViewHolder {
+    private static class ViewHolder {
         private TextView name;
         private TextView date;
         private TextView details;
@@ -1759,7 +1624,7 @@ public class FileViewer extends AppCompatActivity
             SimpleDateFormat format = new SimpleDateFormat("dd-MMM-yyyy hh:mm:ss a");
             holder.date.setText(format.format(current_file.lastModified()));
             if (current_file.isFile()) {
-                holder.details.setText(displaySize(current_file.length()));
+                holder.details.setText(Util.displaySize(current_file.length()));
             } else if (current_file.isDirectory()) {
                 File temp[] = current_file.listFiles();
                 int n = (temp != null ? temp.length : 0);
