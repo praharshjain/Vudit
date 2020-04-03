@@ -80,9 +80,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Stack;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -160,11 +158,7 @@ public class FileViewer extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        if (!checkAndRequestPermissions()) {
-            showMsg("Permissions not granted", 0);
-            finish();
-            return;
-        }
+        checkAndRequestPermissions();
         BigImageViewer.initialize(GlideImageLoader.with(getApplicationContext()));
         //Setup UI
         setContentView(R.layout.file_viewer);
@@ -1340,14 +1334,8 @@ public class FileViewer extends AppCompatActivity
     }
 
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        int index = 0;
-        Map<String, Integer> permissionsMap = new HashMap<String, Integer>();
-        for (String permission : permissions) {
-            permissionsMap.put(permission, grantResults[index]);
-            index++;
-        }
-        for (String permission : requiredpermissions) {
-            if (permissionsMap.get(permission) != 1) {
+        for (int res : grantResults) {
+            if (res != PackageManager.PERMISSION_GRANTED) {
                 showMsg("Permissions not granted", 0);
                 finish();
                 return;
@@ -1359,7 +1347,7 @@ public class FileViewer extends AppCompatActivity
         List<String> listPermissionsNeeded = new ArrayList<>();
         if (SDK_INT >= Build.VERSION_CODES.M) {
             for (String permission : requiredpermissions) {
-                if (ContextCompat.checkSelfPermission(this, permission) != PackageManager.PERMISSION_GRANTED) {
+                if (ContextCompat.checkSelfPermission(getApplicationContext(), permission) != PackageManager.PERMISSION_GRANTED) {
                     listPermissionsNeeded.add(permission);
                 }
             }
@@ -1367,13 +1355,11 @@ public class FileViewer extends AppCompatActivity
         return listPermissionsNeeded;
     }
 
-    private boolean checkAndRequestPermissions() {
+    private void checkAndRequestPermissions() {
         List<String> neededPermissions = getNeededPermissions();
         if (!neededPermissions.isEmpty()) {
             ActivityCompat.requestPermissions(this, neededPermissions.toArray(new String[neededPermissions.size()]), REQUEST_ID_MULTIPLE_PERMISSIONS);
-            return false;
         }
-        return true;
     }
 
     private static String unpackZip(File zipFile, File targetDirectory) {
@@ -1592,7 +1578,7 @@ public class FileViewer extends AppCompatActivity
 
         @Override
         public int getCount() {
-            return files.length;
+            return files != null ? files.length : 0;
         }
 
         @Override
