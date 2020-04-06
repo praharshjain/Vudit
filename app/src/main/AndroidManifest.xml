@@ -4,6 +4,8 @@
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -40,220 +42,85 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.BROWSABLE" />
                 <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.OPENABLE" />
+
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.OPEN_DOCUMENT" />
+                <action android:name="android.intent.action.QUICK_VIEW" />
+                <action android:name="android.intent.action.RUN" />
+
+                <data android:scheme="*" />
                 <!-- PDF -->
-                <data
-                    android:host="*"
-                    android:mimeType="application/pdf"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="application/pdf"
-                    android:scheme="content" />
+                <data android:mimeType="application/pdf" />
                 <!-- Zip -->
-                <data
-                    android:host="*"
-                    android:mimeType="application/zip"
-                    android:scheme="file" />
+                <data android:mimeType="application/zip" />
                 <!-- SQLite -->
-                <data
-                    android:host="*"
-                    android:mimeType="application/x-sqlite3"
-                    android:scheme="file" />
+                <data android:mimeType="application/x-sqlite3" />
                 <!-- Audio -->
-                <data
-                    android:host="*"
-                    android:mimeType="audio/*"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="application/ogg"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="application/x-ogg"
-                    android:scheme="file" />
+                <data android:mimeType="audio/*" />
+                <data android:mimeType="application/ogg" />
+                <data android:mimeType="application/x-ogg" />
                 <!-- Images -->
-                <data
-                    android:host="*"
-                    android:mimeType="image/*"
-                    android:scheme="file" />
+                <data android:mimeType="image/*" />
                 <!-- Videos -->
-                <data
-                    android:host="*"
-                    android:mimeType="video/*"
-                    android:scheme="file" />
+                <data android:mimeType="video/*" />
                 <!-- Text -->
-                <data
-                    android:host="*"
-                    android:mimeType="text/*"
-                    android:scheme="file" />
+                <data android:mimeType="text/*" />
             </intent-filter>
             <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-
                 <category android:name="android.intent.category.BROWSABLE" />
                 <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.OPENABLE" />
+
+                <action android:name="android.intent.action.VIEW" />
+                <action android:name="android.intent.action.OPEN_DOCUMENT" />
+                <action android:name="android.intent.action.QUICK_VIEW" />
+                <action android:name="android.intent.action.RUN" />
+
+                <data android:scheme="*" />
+                <data android:host="*" />
                 <!-- PDF -->
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.pdf"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.pdf"
-                    android:scheme="content" />
+                <data android:pathPattern=".*\\.pdf" />
                 <!-- SQLite -->
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.sqlite"
-                    android:scheme="file" />
+                <data android:pathPattern=".*\\.sqlite" />
                 <!-- Zip -->
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.zip"
-                    android:scheme="file" />
+                <data android:pathPattern=".*\\.zip" />
                 <!-- Audio -->
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.mp3"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.oog"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.wav"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.mid"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.m4a"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.amr"
-                    android:scheme="file" />
+                <data android:pathPattern=".*\\.mp3" />
+                <data android:pathPattern=".*\\.oog" />
+                <data android:pathPattern=".*\\.wav" />
+                <data android:pathPattern=".*\\.mid" />
+                <data android:pathPattern=".*\\.m4a" />
+                <data android:pathPattern=".*\\.amr" />
                 <!-- Images -->
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.png"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.jpg"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.gif"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.bmp"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.jpeg"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.webp"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.svg"
-                    android:scheme="file" />
+                <data android:pathPattern=".*\\.png" />
+                <data android:pathPattern=".*\\.jpg" />
+                <data android:pathPattern=".*\\.gif" />
+                <data android:pathPattern=".*\\.bmp" />
+                <data android:pathPattern=".*\\.jpeg" />
+                <data android:pathPattern=".*\\.webp" />
+                <data android:pathPattern=".*\\.svg" />
                 <!-- Videos -->
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.mp4"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.3gp"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.mkv"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.webm"
-                    android:scheme="file" />
+                <data android:pathPattern=".*\\.mp4" />
+                <data android:pathPattern=".*\\.3gp" />
+                <data android:pathPattern=".*\\.mkv" />
+                <data android:pathPattern=".*\\.webm" />
+                <data android:pathPattern=".*\\.m3u8" />
+                <data android:pathPattern=".*\\.m3u" />
                 <!-- Documents -->
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.odt"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.ott"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.odp"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.otp"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.ods"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.ots"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.fodt"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.fods"
-                    android:scheme="file" />
-                <data
-                    android:host="*"
-                    android:mimeType="*/*"
-                    android:pathPattern=".*\\.fodp"
-                    android:scheme="file" />
+                <data android:pathPattern=".*\\.odt" />
+                <data android:pathPattern=".*\\.ott" />
+                <data android:pathPattern=".*\\.odp" />
+                <data android:pathPattern=".*\\.otp" />
+                <data android:pathPattern=".*\\.ods" />
+                <data android:pathPattern=".*\\.ots" />
+                <data android:pathPattern=".*\\.fodt" />
+                <data android:pathPattern=".*\\.fods" />
+                <data android:pathPattern=".*\\.fodp" />
             </intent-filter>
         </activity>
         <activity
@@ -269,7 +136,7 @@
             android:hardwareAccelerated="true"
             android:icon="@mipmap/ic_launcher"
             android:label="VideoPlayer"
-            android:screenOrientation="sensorLandscape"
+            android:screenOrientation="fullSensor"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
         <activity
             android:name=".ImageViewer"

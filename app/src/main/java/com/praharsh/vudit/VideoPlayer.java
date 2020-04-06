@@ -1,6 +1,8 @@
 package com.praharsh.vudit;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -10,6 +12,7 @@ import android.widget.VideoView;
 
 public class VideoPlayer extends Activity {
     private VideoView vw;
+    private ProgressDialog progressDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,6 +26,8 @@ public class VideoPlayer extends Activity {
                 hideStatusBar();
             }
         });
+        progressDialog = new ProgressDialog(this);
+        showProgressBar();
         MediaController mc = new MediaController(this);
         mc.setAnchorView(vw);
         mc.setMediaPlayer(vw);
@@ -32,8 +37,14 @@ public class VideoPlayer extends Activity {
         } catch (Exception e) {
             finish();
         }
-        vw.setMediaController(mc);
         vw.setVideoURI(video);
+        vw.setMediaController(mc);
+        vw.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(MediaPlayer mp) {
+                progressDialog.dismiss();
+            }
+        });
         vw.requestFocus();
         vw.start();
     }
@@ -53,5 +64,11 @@ public class VideoPlayer extends Activity {
     protected void hideStatusBar() {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_FULLSCREEN);
+    }
+
+    protected void showProgressBar() {
+        progressDialog.setMessage("Loading...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
     }
 }

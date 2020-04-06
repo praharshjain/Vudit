@@ -113,6 +113,8 @@ public class FileViewer extends AppCompatActivity
     private static final String[] requiredpermissions = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.INTERNET,
+            Manifest.permission.ACCESS_NETWORK_STATE,
     };
     //Comparators for sorting
     private Comparator<File> byName = new Comparator<File>() {
@@ -1435,9 +1437,8 @@ public class FileViewer extends AppCompatActivity
     }
 
     private static long getFolderSize(File file) {
-        long size;
-        if (file.exists() && file.isDirectory()) {
-            size = 0;
+        long size = 0;
+        if (file != null && file.exists() && file.isDirectory()) {
             File arr[] = file.listFiles();
             if (arr != null) {
                 for (File child : arr) {
@@ -1446,8 +1447,8 @@ public class FileViewer extends AppCompatActivity
                     else size += child.length();
                 }
             }
-            return size;
-        } else return 0;
+        }
+        return size;
     }
 
     private boolean appInstalled(String uri) {
