@@ -38,7 +38,6 @@
 
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
@@ -52,7 +51,10 @@
                 <action android:name="android.intent.action.QUICK_VIEW" />
                 <action android:name="android.intent.action.RUN" />
 
-                <data android:scheme="*" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
                 <!-- PDF -->
                 <data android:mimeType="application/pdf" />
                 <!-- Zip -->
@@ -81,7 +83,10 @@
                 <action android:name="android.intent.action.QUICK_VIEW" />
                 <action android:name="android.intent.action.RUN" />
 
-                <data android:scheme="*" />
+                <data android:scheme="content" />
+                <data android:scheme="file" />
+                <data android:scheme="http" />
+                <data android:scheme="https" />
                 <data android:host="*" />
                 <!-- PDF -->
                 <data android:pathPattern=".*\\.pdf" />

@@ -10,7 +10,7 @@
             android:id="@+id/nav_root"
             android:icon="@drawable/root_folder"
             android:title="Root Folder"
-            android:visible="false"/>
+            android:visible="false" />
         <item
             android:id="@+id/nav_sdcard"
             android:icon="@android:drawable/stat_notify_sdcard"
@@ -22,7 +22,7 @@
             android:title="Camera Folder" />
         <item
             android:id="@+id/nav_downloads"
-            android:icon="@android:drawable/stat_sys_download_done"
+            android:icon="@drawable/downloads"
             android:title="Downloads" />
         <item
             android:id="@+id/nav_favourites"

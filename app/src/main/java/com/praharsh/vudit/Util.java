@@ -77,6 +77,14 @@ public class Util {
         return String.format("%02d:%02d", TimeUnit.MILLISECONDS.toMinutes(duration), TimeUnit.MILLISECONDS.toSeconds(duration) - TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(duration)));
     }
 
+    static String getSDCard() {
+        String sdcard = System.getenv("SECONDARY_STORAGE");
+        if ((sdcard == null) || (sdcard.length() == 0)) {
+            sdcard = System.getenv("EXTERNAL_SDCARD_STORAGE");
+        }
+        return sdcard;
+    }
+
     static String md5(String file_path) {
         try {
             FileInputStream fs = new FileInputStream(file_path);

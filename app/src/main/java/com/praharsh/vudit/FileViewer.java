@@ -40,7 +40,6 @@ import android.widget.Filter;
 import android.widget.Filterable;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
@@ -59,6 +58,7 @@ import androidx.core.content.FileProvider;
 import androidx.core.view.GravityCompat;
 import androidx.core.view.MenuItemCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.gridlayout.widget.GridLayout;
 
 import com.bumptech.glide.Glide;
 import com.github.piasy.biv.BigImageViewer;
@@ -86,6 +86,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 import static android.os.Build.VERSION.SDK_INT;
+import static com.praharsh.vudit.Util.getSDCard;
 
 public class FileViewer extends AppCompatActivity
         implements ListView.OnScrollListener, NavigationView.OnNavigationItemSelectedListener,
@@ -96,7 +97,7 @@ public class FileViewer extends AppCompatActivity
     private Toolbar toolbar;
     private DrawerLayout drawer;
     private ListView lv;
-    private LinearLayout homeViewLayout;
+    private GridLayout homeViewLayout;
     private File file, files[], origFiles[];
     private RecentFilesStack recent;
     private ArrayList<File> favourites;
@@ -226,6 +227,12 @@ public class FileViewer extends AppCompatActivity
                 listMediaFiles(6);
             }
         });
+        homeViewLayout.findViewById(R.id.btn_apps).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                listMediaFiles(7);
+            }
+        });
         homeViewLayout.findViewById(R.id.btn_camera_folder).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -275,16 +282,11 @@ public class FileViewer extends AppCompatActivity
         findViewById(R.id.btn_recents_view).setVisibility(storeRecentItems ? View.VISIBLE : View.GONE);
         navigationView.getMenu().findItem(R.id.nav_recent).setVisible(storeRecentItems);
         //Check if secondary storage is available
-        String sdcard = System.getenv("SECONDARY_STORAGE");
-        if ((sdcard == null) || (sdcard.length() == 0)) {
-            sdcard = System.getenv("EXTERNAL_SDCARD_STORAGE");
-        }
+        String sdcard = getSDCard();
         if (sdcard != null && sdcard.length() > 0) {
             navigationView.getMenu().findItem(R.id.nav_sdcard).setVisible(true);
             storagePaths.add(sdcard);
-            if (SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), SDCARD_WRITE_PERMISSION_REQUEST_CODE);
-            }
+            requestSDCardPermissions(sdcard);
         }
         //Check if root folder is readable
         File root = getRootDirectory();
@@ -317,7 +319,9 @@ public class FileViewer extends AppCompatActivity
                         updateFiles(f);
                     }
                 });
-                homeViewLayout.addView(storageView, 0);
+                GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+                params.columnSpec = GridLayout.spec(0, 2);
+                homeViewLayout.addView(storageView, i, params);
             }
         }
 
@@ -411,10 +415,7 @@ public class FileViewer extends AppCompatActivity
             File f = getRootDirectory();
             updateFiles(f);
         } else if (id == R.id.nav_sdcard) {
-            String sdcard = System.getenv("SECONDARY_STORAGE");
-            if ((sdcard == null) || (sdcard.length() == 0)) {
-                sdcard = System.getenv("EXTERNAL_SDCARD_STORAGE");
-            }
+            String sdcard = getSDCard();
             if (sdcard != null) {
                 File f = new File(sdcard);
                 if (f.exists())
@@ -459,6 +460,18 @@ public class FileViewer extends AppCompatActivity
             recent_items_checkbox.setChecked(storeRecentItems);
             sort_criteria.setSelection(sortCriterion);
             sort_mode.setSelection(sortDesc ? 1 : 0);
+            settings_view.findViewById(R.id.btn_clear_fav).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    favourites.clear();
+                }
+            });
+            settings_view.findViewById(R.id.btn_clear_recent).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    recent.clear();
+                }
+            });
             settings_dialog.setPositiveButton("Save", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
@@ -705,7 +718,7 @@ public class FileViewer extends AppCompatActivity
 
     public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
         super.onActivityResult(requestCode, resultCode, resultData);
-        if (resultCode == SDCARD_WRITE_PERMISSION_REQUEST_CODE && SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        if (requestCode == SDCARD_WRITE_PERMISSION_REQUEST_CODE && SDK_INT >= Build.VERSION_CODES.KITKAT) {
             Uri treeUri = resultData.getData();
             if (treeUri != null) {
                 grantUriPermission(getPackageName(), treeUri, Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
@@ -1523,6 +1536,11 @@ public class FileViewer extends AppCompatActivity
                 selectionArgs = Util.getMimeTypeQueryArgs(Util.txt_ext);
                 selectionQuery = Util.getMimeTypeQuery(selectionArgs);
                 break;
+            case 7: //apk files
+                uri = MediaStore.Files.getContentUri("external");
+                toolbarTitle = "Apps";
+                selectionArgs = Util.getMimeTypeQueryArgs(Arrays.asList("apk"));
+                selectionQuery = Util.getMimeTypeQuery(selectionArgs);
         }
         ContentResolver contentResolver = getContentResolver();
         Cursor cursor = contentResolver.query(uri, null, selectionQuery, selectionArgs, null);
@@ -1550,6 +1568,12 @@ public class FileViewer extends AppCompatActivity
         } else {
             files = origFiles;
             showMsg("No " + toolbarTitle + " found", 1);
+        }
+    }
+
+    private void requestSDCardPermissions(String cardPath) {
+        if (SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            startActivityForResult(new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE), SDCARD_WRITE_PERMISSION_REQUEST_CODE);
         }
     }
 

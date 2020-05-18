@@ -105,4 +105,24 @@
             android:layout_height="wrap_content"
             android:entries="@array/sort_mode" />
     </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp">
+
+        <Button
+            android:id="@+id/btn_clear_fav"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Clear Favourites"></Button>
+
+        <Button
+            android:id="@+id/btn_clear_recent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Clear Recents"></Button>
+    </LinearLayout>
 </LinearLayout>
