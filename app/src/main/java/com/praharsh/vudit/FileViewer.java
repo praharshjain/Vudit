@@ -1132,7 +1132,7 @@ public class FileViewer extends AppCompatActivity
             for (i = 0; i < n; i++) {
                 deleted &= deleteFiles(arr[i]);
             }
-            return deleted & f.delete();
+            return deleted && f.delete();
         } else return f.delete();
     }
 
