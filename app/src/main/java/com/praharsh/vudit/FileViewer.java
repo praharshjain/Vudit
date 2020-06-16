@@ -1320,15 +1320,13 @@ public class FileViewer extends AppCompatActivity
             Arrays.sort(f, sortDesc ? byDateDesc : byDate);
         else if (sortCriterion == 2)
             Arrays.sort(f, sortDesc ? bySizeDesc : bySize);
-        else {
-            if (sortDesc) {
-                File temp;
-                n = f.length;
-                for (i = 0; i < n / 2; i++) {
-                    temp = f[i];
-                    f[i] = f[n - i - 1];
-                    f[n - i - 1] = temp;
-                }
+        else if (sortDesc) {
+            File temp;
+            n = f.length;
+            for (i = 0; i < n / 2; i++) {
+                temp = f[i];
+                f[i] = f[n - i - 1];
+                f[n - i - 1] = temp;
             }
         }
         if (listFoldersFirst) {
