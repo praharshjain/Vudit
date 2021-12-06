@@ -29,6 +29,7 @@
         <activity
             android:name=".FileViewer"
             android:alwaysRetainTaskState="true"
+            android:exported="true"
             android:hardwareAccelerated="true"
             android:icon="@mipmap/ic_launcher"
             android:label="Vudit">
@@ -131,6 +132,7 @@
         <activity
             android:name=".WebViewBaseActivity"
             android:alwaysRetainTaskState="true"
+            android:exported="true"
             android:hardwareAccelerated="true"
             android:icon="@mipmap/ic_launcher"
             android:label="WebView"
@@ -138,6 +140,7 @@
         <activity
             android:name=".VideoPlayer"
             android:alwaysRetainTaskState="true"
+            android:exported="true"
             android:hardwareAccelerated="true"
             android:icon="@mipmap/ic_launcher"
             android:label="VideoPlayer"
@@ -146,6 +149,7 @@
         <activity
             android:name=".ImageViewer"
             android:alwaysRetainTaskState="true"
+            android:exported="true"
             android:hardwareAccelerated="true"
             android:icon="@mipmap/ic_launcher"
             android:label="ImageViewer"
@@ -153,6 +157,7 @@
         <activity
             android:name=".TextViewer"
             android:alwaysRetainTaskState="true"
+            android:exported="true"
             android:hardwareAccelerated="true"
             android:icon="@mipmap/ic_launcher"
             android:label="TextViewer"
@@ -160,6 +165,7 @@
         <activity
             android:name=".DOCViewer"
             android:alwaysRetainTaskState="true"
+            android:exported="true"
             android:hardwareAccelerated="true"
             android:icon="@mipmap/ic_launcher"
             android:label="DOCViewer"
@@ -167,6 +173,7 @@
         <activity
             android:name=".HTMLViewer"
             android:alwaysRetainTaskState="true"
+            android:exported="true"
             android:hardwareAccelerated="true"
             android:icon="@mipmap/ic_launcher"
             android:label="HTMLViewer"
@@ -174,6 +181,7 @@
         <activity
             android:name=".SQLiteViewer"
             android:alwaysRetainTaskState="true"
+            android:exported="true"
             android:hardwareAccelerated="true"
             android:icon="@mipmap/ic_launcher"
             android:label="SQLiteViewer"
