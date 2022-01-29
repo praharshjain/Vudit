@@ -1,12 +1,13 @@
 package com.praharsh.vudit;
 
+import static android.os.Build.VERSION.SDK_INT;
+import static com.praharsh.vudit.Util.getSDCard;
+
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
-import android.content.ContentResolver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
@@ -86,20 +87,26 @@ import java.util.Stack;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-import static android.os.Build.VERSION.SDK_INT;
-import static com.praharsh.vudit.Util.getSDCard;
-
 public class FileViewer extends AppCompatActivity
         implements ListView.OnScrollListener, NavigationView.OnNavigationItemSelectedListener,
         SearchView.OnQueryTextListener {
-    private static boolean mBusy = false, recentsView = false, favouritesView = false, homeView = true;
     private static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1, SDCARD_WRITE_PERMISSION_REQUEST_CODE = 100;
+    private static final String tempPath = Environment.getExternalStorageDirectory().getPath() + "/Vudit/temp/";
+    private static final String[] requiredpermissions = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.INTERNET,
+            Manifest.permission.ACCESS_NETWORK_STATE,
+    };
+    private static boolean mBusy = false, recentsView = false, favouritesView = false, homeView = true;
     private static ViewHolder holder;
     private Toolbar toolbar;
     private DrawerLayout drawer;
     private ListView lv;
     private GridLayout homeViewLayout;
-    private File file, files[], origFiles[];
+    private File file;
+    private File[] files;
+    private File[] origFiles;
     private RecentFilesStack recent;
     private ArrayList<File> favourites;
     private EfficientAdapter adap;
@@ -108,41 +115,149 @@ public class FileViewer extends AppCompatActivity
     private TextView current_duration, total_duration, title;
     private ImageButton btn_play, btn_rev, btn_forward;
     private SeekBar seek;
-    private static final String tempPath = Environment.getExternalStorageDirectory().getPath() + "/Vudit/temp/";
-    private byte data[];
+    private byte[] data;
     private int sortCriterion = 0;
     private boolean isValid, sortDesc = false, listFoldersFirst = true, storeRecentItems = true, showHiddenFiles = true;
-    private static final String[] requiredpermissions = {
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE,
-            Manifest.permission.INTERNET,
-            Manifest.permission.ACCESS_NETWORK_STATE,
-    };
     //Comparators for sorting
-    private Comparator<File> byName = (f1, f2) -> {
+    private final Comparator<File> byName = (f1, f2) -> {
         int res = String.CASE_INSENSITIVE_ORDER.compare(f1.getName(), f2.getName());
         return (res == 0 ? f1.getName().compareTo(f2.getName()) : res);
     };
-    private Comparator<File> byDate = (f1, f2) -> {
+    private final Comparator<File> byDate = (f1, f2) -> {
         if (f1.lastModified() > f2.lastModified()) return 1;
         else if (f1.lastModified() < f2.lastModified()) return -1;
         else return 0;
     };
-    private Comparator<File> byDateDesc = (f1, f2) -> {
+    private final Comparator<File> byDateDesc = (f1, f2) -> {
         if (f1.lastModified() > f2.lastModified()) return -1;
         else if (f1.lastModified() < f2.lastModified()) return 1;
         else return 0;
     };
-    private Comparator<File> bySize = (f1, f2) -> {
+    private final Comparator<File> bySize = (f1, f2) -> {
         if (f1.length() > f2.length()) return 1;
         else if (f1.length() < f2.length()) return -1;
         else return 0;
     };
-    private Comparator<File> bySizeDesc = (f1, f2) -> {
+    private final Comparator<File> bySizeDesc = (f1, f2) -> {
         if (f1.length() > f2.length()) return -1;
         else if (f1.length() < f2.length()) return 1;
         else return 0;
     };
+
+    private static boolean deleteFiles(File f) {
+        if (f == null || !f.exists())
+            return false;
+        f.setWritable(true);
+        if (f.isDirectory()) {
+            File[] arr = f.listFiles();
+            int i, n = arr.length;
+            boolean deleted = true;
+            for (i = 0; i < n; i++) {
+                deleted &= deleteFiles(arr[i]);
+            }
+            return deleted && f.delete();
+        } else return f.delete();
+    }
+
+    private static String unpackZip(File zipFile, File targetDirectory) {
+        String dirName = "";
+        try {
+            ZipInputStream zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(zipFile)));
+            ZipEntry ze;
+            int count = -2;
+            byte[] buffer = new byte[8192];
+            while ((ze = zis.getNextEntry()) != null) {
+                if (count == -2) {
+                    dirName = ze.getName().split("/")[0];
+                }
+                File file = new File(targetDirectory, ze.getName());
+                File dir = ze.isDirectory() ? file : file.getParentFile();
+                if (!dir.isDirectory() && !dir.mkdirs()) {
+                    return "";
+                }
+                if (ze.isDirectory()) {
+                    continue;
+                }
+                FileOutputStream fout = new FileOutputStream(file);
+                while ((count = zis.read(buffer)) != -1) {
+                    fout.write(buffer, 0, count);
+                }
+                // restore time as well
+                long time = ze.getTime();
+                if (time > 0) {
+                    file.setLastModified(time);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "";
+        }
+        return dirName;
+    }
+
+    private static void freeMemory(boolean deleteTempFiles) {
+        //remove temp files
+        if (deleteTempFiles) {
+            deleteFiles(new File(tempPath));
+        }
+        //try to free ram
+        System.runFinalization();
+        Runtime.getRuntime().gc();
+        System.gc();
+    }
+
+    private static String getFilePermissions(File file) {
+        String s = "";
+        if (file.getParent() != null) {
+            try {
+                ProcessBuilder processBuilder = new ProcessBuilder("ls", "-l").directory(new File(file.getParent()));// TODO CHECK IF THE FILE IS SD CARD PARENT IS NULL
+                Process process = processBuilder.start();
+                PrintWriter out = new PrintWriter(new OutputStreamWriter(process.getOutputStream()));
+                BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
+                out.flush();
+                s = in.readLine();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (s == null) s = "";
+        return s;
+    }
+
+    private static long getFolderSize(File file) {
+        long size = 0;
+        if (file != null && file.exists() && file.isDirectory()) {
+            File[] arr = file.listFiles();
+            if (arr != null) {
+                for (File child : arr) {
+                    if (child.isDirectory())
+                        size += getFolderSize(child);
+                    else size += child.length();
+                }
+            }
+        }
+        return size;
+    }
+
+    private static File getRootDirectory() {
+        File f = Environment.getRootDirectory();
+        f.setReadable(true);
+        if (!f.canRead()) {
+            return null;
+        }
+        while (true) {
+            File parent = f.getParentFile();
+            if (parent == null || !parent.exists()) {
+                break;
+            }
+            parent.setReadable(true);
+            if (!parent.canRead()) {
+                break;
+            }
+            f = parent;
+        }
+        return f;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -382,7 +497,7 @@ public class FileViewer extends AppCompatActivity
                 storeRecentItems = recent_items_checkbox.isChecked();
                 String sortBy = sort_criteria.getSelectedItem().toString();
                 sortDesc = sort_mode.getSelectedItem().toString().equals("Descending");
-                String criteria[] = getResources().getStringArray(R.array.sort_criteria);
+                String[] criteria = getResources().getStringArray(R.array.sort_criteria);
                 for (i = 0; i < criteria.length; i++) {
                     if (sortBy.equals(criteria[i])) {
                         sortCriterion = i;
@@ -424,7 +539,7 @@ public class FileViewer extends AppCompatActivity
         } else if (id == R.id.nav_feedback) {
             Intent email = new Intent(Intent.ACTION_SENDTO);
             email.setData(Uri.parse("mailto:"));
-            String emailadd[] = {"praharshsamria@gmail.com"};
+            String[] emailadd = {"praharshsamria@gmail.com"};
             email.putExtra(Intent.EXTRA_EMAIL, emailadd);
             email.putExtra(Intent.EXTRA_SUBJECT, "Vudit Feedback");
             if (email.resolveActivity(getPackageManager()) != null) {
@@ -547,7 +662,7 @@ public class FileViewer extends AppCompatActivity
                             updateFiles(current_file.getParentFile());
                             //update recents and favorites
                             int i, n = favourites.size();
-                            File arr[] = new File[n];
+                            File[] arr = new File[n];
                             favourites.toArray(arr);
                             favourites.clear();
                             for (i = 0; i < n; i++) {
@@ -995,21 +1110,6 @@ public class FileViewer extends AppCompatActivity
         return false;
     }
 
-    private static boolean deleteFiles(File f) {
-        if (f == null || !f.exists())
-            return false;
-        f.setWritable(true);
-        if (f.isDirectory()) {
-            File arr[] = f.listFiles();
-            int i, n = arr.length;
-            boolean deleted = true;
-            for (i = 0; i < n; i++) {
-                deleted &= deleteFiles(arr[i]);
-            }
-            return deleted && f.delete();
-        } else return f.delete();
-    }
-
     private void recentFiles() {
         RecentFilesStack temp = (RecentFilesStack<File>) recent.clone();
         files = new File[temp.size()];
@@ -1058,7 +1158,7 @@ public class FileViewer extends AppCompatActivity
                     holder.icon = view.getChildAt(i).findViewById(R.id.icon);
                     if (current_file.isDirectory()) {
                         holder.details.setText("");
-                        File temp[] = current_file.listFiles();
+                        File[] temp = current_file.listFiles();
                         int n = (temp != null ? temp.length : 0);
                         holder.details.setText(n + " items");
                         holder.icon.setImageResource(n > 0 ? R.drawable.folder : R.drawable.folder_empty);
@@ -1113,7 +1213,7 @@ public class FileViewer extends AppCompatActivity
         sortCriterion = prefs.getInt("SortCriterion", 0);
         prefs = getSharedPreferences("Vudit_Recent_Items", MODE_PRIVATE);
         Collection<?> c = prefs.getAll().values();
-        String paths[] = new String[c.size()];
+        String[] paths = new String[c.size()];
         paths = c.toArray(paths);
         File f;
         recent.clear();
@@ -1161,7 +1261,7 @@ public class FileViewer extends AppCompatActivity
             favourites_editor.clear();
             favourites_editor.commit();
             n = favourites.size();
-            File arr[] = new File[n];
+            File[] arr = new File[n];
             favourites.toArray(arr);
             for (i = 0; i < n; i++) {
                 f = arr[i];
@@ -1176,7 +1276,7 @@ public class FileViewer extends AppCompatActivity
         }
     }
 
-    private File[] sortFiles(File f[]) {
+    private File[] sortFiles(File[] f) {
         int i, n;
         if (!showHiddenFiles) {
             ArrayList<File> temp = new ArrayList<File>();
@@ -1250,91 +1350,11 @@ public class FileViewer extends AppCompatActivity
         }
     }
 
-    private static String unpackZip(File zipFile, File targetDirectory) {
-        String dirName = "";
-        try {
-            ZipInputStream zis = new ZipInputStream(new BufferedInputStream(new FileInputStream(zipFile)));
-            ZipEntry ze;
-            int count = -2;
-            byte[] buffer = new byte[8192];
-            while ((ze = zis.getNextEntry()) != null) {
-                if (count == -2) {
-                    dirName = ze.getName().split("/")[0];
-                }
-                File file = new File(targetDirectory, ze.getName());
-                File dir = ze.isDirectory() ? file : file.getParentFile();
-                if (!dir.isDirectory() && !dir.mkdirs()) {
-                    return "";
-                }
-                if (ze.isDirectory()) {
-                    continue;
-                }
-                FileOutputStream fout = new FileOutputStream(file);
-                while ((count = zis.read(buffer)) != -1) {
-                    fout.write(buffer, 0, count);
-                }
-                // restore time as well
-                long time = ze.getTime();
-                if (time > 0) {
-                    file.setLastModified(time);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return "";
-        }
-        return dirName;
-    }
-
-    private static void freeMemory(boolean deleteTempFiles) {
-        //remove temp files
-        if (deleteTempFiles) {
-            deleteFiles(new File(tempPath));
-        }
-        //try to free ram
-        System.runFinalization();
-        Runtime.getRuntime().gc();
-        System.gc();
-    }
-
     private void showMsg(String msg, int mode) {
         if (mode == 0)
             Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
         else
             Snackbar.make(findViewById(R.id.list), msg, Snackbar.LENGTH_LONG).setAction("Action", null).show();
-    }
-
-    private static String getFilePermissions(File file) {
-        String s = "";
-        if (file.getParent() != null) {
-            try {
-                ProcessBuilder processBuilder = new ProcessBuilder("ls", "-l").directory(new File(file.getParent()));// TODO CHECK IF THE FILE IS SD CARD PARENT IS NULL
-                Process process = processBuilder.start();
-                PrintWriter out = new PrintWriter(new OutputStreamWriter(process.getOutputStream()));
-                BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
-                out.flush();
-                s = in.readLine();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        if (s == null) s = "";
-        return s;
-    }
-
-    private static long getFolderSize(File file) {
-        long size = 0;
-        if (file != null && file.exists() && file.isDirectory()) {
-            File arr[] = file.listFiles();
-            if (arr != null) {
-                for (File child : arr) {
-                    if (child.isDirectory())
-                        size += getFolderSize(child);
-                    else size += child.length();
-                }
-            }
-        }
-        return size;
     }
 
     private boolean appInstalled(String uri) {
@@ -1346,26 +1366,6 @@ public class FileViewer extends AppCompatActivity
             e.printStackTrace();
             return false;
         }
-    }
-
-    private static File getRootDirectory() {
-        File f = Environment.getRootDirectory();
-        f.setReadable(true);
-        if (!f.canRead()) {
-            return null;
-        }
-        while (true) {
-            File parent = f.getParentFile();
-            if (parent == null || !parent.exists()) {
-                break;
-            }
-            parent.setReadable(true);
-            if (!parent.canRead()) {
-                break;
-            }
-            f = parent;
-        }
-        return f;
     }
 
     private void listMediaFiles(int type) {
@@ -1442,7 +1442,7 @@ public class FileViewer extends AppCompatActivity
         }
     }
 
-    private ArrayList<File> getFileListFromQuery( Uri uri, String selectionQuery, String[] selectionArgs) {
+    private ArrayList<File> getFileListFromQuery(Uri uri, String selectionQuery, String[] selectionArgs) {
         Cursor cursor = getContentResolver().query(uri, null, selectionQuery, selectionArgs, null);
         int colIndex = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
         ArrayList<File> fileList = new ArrayList<>();
@@ -1480,8 +1480,8 @@ public class FileViewer extends AppCompatActivity
     }
 
     class EfficientAdapter extends BaseAdapter implements Filterable {
-        private LayoutInflater mInflater;
-        private Context mContext;
+        private final LayoutInflater mInflater;
+        private final Context mContext;
 
         public EfficientAdapter(Context context) {
             // Cache the LayoutInflate to avoid asking for a new one each time.
@@ -1527,7 +1527,7 @@ public class FileViewer extends AppCompatActivity
             if (current_file.isFile()) {
                 holder.details.setText(Util.displaySize(current_file.length()));
             } else if (current_file.isDirectory()) {
-                File temp[] = current_file.listFiles();
+                File[] temp = current_file.listFiles();
                 int n = (temp != null ? temp.length : 0);
                 holder.details.setText(n + " items");
             } else {
@@ -1555,7 +1555,7 @@ public class FileViewer extends AppCompatActivity
     }
 
     class RecentFilesStack<File> extends Stack<File> {
-        private int maxSize;
+        private final int maxSize;
 
         public RecentFilesStack(int size) {
             super();
@@ -1586,7 +1586,7 @@ public class FileViewer extends AppCompatActivity
                     }
                 }
                 filterResults.count = tempList.size();
-                File f[] = new File[filterResults.count];
+                File[] f = new File[filterResults.count];
                 filterResults.values = tempList.toArray(f);
             } else {
                 filterResults.count = files.length;

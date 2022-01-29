@@ -1,8 +1,8 @@
 package com.praharsh.vudit;
 
-import android.os.Bundle;
-
 import static android.net.Uri.encode;
+
+import android.os.Bundle;
 
 public class DOCViewer extends WebViewBaseActivity {
     @Override

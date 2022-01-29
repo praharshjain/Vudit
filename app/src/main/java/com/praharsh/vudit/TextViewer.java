@@ -1,5 +1,7 @@
 package com.praharsh.vudit;
 
+import static android.net.Uri.encode;
+
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
@@ -8,8 +10,6 @@ import android.webkit.JavascriptInterface;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-
-import static android.net.Uri.encode;
 
 public class TextViewer extends WebViewBaseActivity {
 
@@ -41,7 +41,7 @@ public class TextViewer extends WebViewBaseActivity {
     }
 
     class WebAppInterface {
-        private String text;
+        private final String text;
 
         WebAppInterface(Context c, String file_text) {
             text = file_text;
