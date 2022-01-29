@@ -79,6 +79,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Stack;
@@ -1498,21 +1499,22 @@ public class FileViewer extends AppCompatActivity
         String toolbarTitle = "";
         String selectionQuery = null;
         String[] selectionArgs = null;
+        ArrayList<File> fileList = null;
+        uri = MediaStore.Files.getContentUri("external");
         switch (type) {
             case 1: //images
-                uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
                 toolbarTitle = "Pictures";
+                fileList = getFileListFromQuery(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, selectionQuery, selectionArgs);
                 break;
             case 2: //audio
-                uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
                 toolbarTitle = "Music";
+                fileList = getFileListFromQuery(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, selectionQuery, selectionArgs);
                 break;
             case 3: //video
-                uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
                 toolbarTitle = "Videos";
+                fileList = getFileListFromQuery(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, selectionQuery, selectionArgs);
                 break;
             case 4: //documents
-                uri = MediaStore.Files.getContentUri("external");
                 toolbarTitle = "Documents";
                 List<String> extList = new ArrayList<>(Util.doc_ext);
                 extList.addAll(Util.xl_ext);
@@ -1521,38 +1523,35 @@ public class FileViewer extends AppCompatActivity
                 extList.add("pdf");
                 selectionArgs = Util.getMimeTypeQueryArgs(extList);
                 selectionQuery = Util.getMimeTypeQuery(selectionArgs);
+                fileList = getFileListFromQuery(uri, selectionQuery, selectionArgs);
+                uri = MediaStore.Files.getContentUri("internal");
+                fileList.addAll(getFileListFromQuery(uri, selectionQuery, selectionArgs));
                 break;
             case 5: //archives
-                uri = MediaStore.Files.getContentUri("external");
                 toolbarTitle = "Archives";
                 selectionArgs = Util.getMimeTypeQueryArgs(Util.archive_ext);
                 selectionQuery = Util.getMimeTypeQuery(selectionArgs);
+                fileList = getFileListFromQuery(uri, selectionQuery, selectionArgs);
+                uri = MediaStore.Files.getContentUri("internal");
+                fileList.addAll(getFileListFromQuery(uri, selectionQuery, selectionArgs));
                 break;
             case 6: //text files
-                uri = MediaStore.Files.getContentUri("external");
                 toolbarTitle = "Text files";
                 selectionArgs = Util.getMimeTypeQueryArgs(Util.txt_ext);
                 selectionQuery = Util.getMimeTypeQuery(selectionArgs);
+                fileList = getFileListFromQuery(uri, selectionQuery, selectionArgs);
+                uri = MediaStore.Files.getContentUri("internal");
+                fileList.addAll(getFileListFromQuery(uri, selectionQuery, selectionArgs));
                 break;
             case 7: //apk files
-                uri = MediaStore.Files.getContentUri("external");
                 toolbarTitle = "Apps";
-                selectionArgs = Util.getMimeTypeQueryArgs(Arrays.asList("apk"));
+                selectionArgs = Util.getMimeTypeQueryArgs(Collections.singletonList("apk"));
                 selectionQuery = Util.getMimeTypeQuery(selectionArgs);
+                uri = MediaStore.Files.getContentUri("external");
+                fileList = getFileListFromQuery(uri, selectionQuery, selectionArgs);
+                uri = MediaStore.Files.getContentUri("internal");
+                fileList.addAll(getFileListFromQuery(uri, selectionQuery, selectionArgs));
         }
-        ContentResolver contentResolver = getContentResolver();
-        Cursor cursor = contentResolver.query(uri, null, selectionQuery, selectionArgs, null);
-        ArrayList<File> fileList = new ArrayList<>();
-        if (cursor != null && cursor.getCount() > 0) {
-            while (cursor.moveToNext()) {
-                String data = cursor.getString(cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA));
-                File f = new File(data);
-                if (f != null && f.exists()) {
-                    fileList.add(f);
-                }
-            }
-        }
-        cursor.close();
         files = new File[fileList.size()];
         files = fileList.toArray(files);
         if (files != null) {
@@ -1567,6 +1566,23 @@ public class FileViewer extends AppCompatActivity
             files = origFiles;
             showMsg("No " + toolbarTitle + " found", 1);
         }
+    }
+
+    private ArrayList<File> getFileListFromQuery( Uri uri, String selectionQuery, String[] selectionArgs) {
+        Cursor cursor = getContentResolver().query(uri, null, selectionQuery, selectionArgs, null);
+        int colIndex = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
+        ArrayList<File> fileList = new ArrayList<>();
+        if (cursor != null && cursor.getCount() > 0) {
+            while (cursor.moveToNext()) {
+                String data = cursor.getString(colIndex);
+                File f = new File(data);
+                if (f != null && f.exists()) {
+                    fileList.add(f);
+                }
+            }
+        }
+        cursor.close();
+        return fileList;
     }
 
     private void requestSDCardPermissions(String cardPath) {
