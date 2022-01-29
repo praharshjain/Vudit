@@ -119,44 +119,29 @@ public class FileViewer extends AppCompatActivity
             Manifest.permission.ACCESS_NETWORK_STATE,
     };
     //Comparators for sorting
-    private Comparator<File> byName = new Comparator<File>() {
-        @Override
-        public int compare(File f1, File f2) {
-            int res = String.CASE_INSENSITIVE_ORDER.compare(f1.getName(), f2.getName());
-            return (res == 0 ? f1.getName().compareTo(f2.getName()) : res);
-        }
+    private Comparator<File> byName = (f1, f2) -> {
+        int res = String.CASE_INSENSITIVE_ORDER.compare(f1.getName(), f2.getName());
+        return (res == 0 ? f1.getName().compareTo(f2.getName()) : res);
     };
-    private Comparator<File> byDate = new Comparator<File>() {
-        @Override
-        public int compare(File f1, File f2) {
-            if (f1.lastModified() > f2.lastModified()) return 1;
-            else if (f1.lastModified() < f2.lastModified()) return -1;
-            else return 0;
-        }
+    private Comparator<File> byDate = (f1, f2) -> {
+        if (f1.lastModified() > f2.lastModified()) return 1;
+        else if (f1.lastModified() < f2.lastModified()) return -1;
+        else return 0;
     };
-    private Comparator<File> byDateDesc = new Comparator<File>() {
-        @Override
-        public int compare(File f1, File f2) {
-            if (f1.lastModified() > f2.lastModified()) return -1;
-            else if (f1.lastModified() < f2.lastModified()) return 1;
-            else return 0;
-        }
+    private Comparator<File> byDateDesc = (f1, f2) -> {
+        if (f1.lastModified() > f2.lastModified()) return -1;
+        else if (f1.lastModified() < f2.lastModified()) return 1;
+        else return 0;
     };
-    private Comparator<File> bySize = new Comparator<File>() {
-        @Override
-        public int compare(File f1, File f2) {
-            if (f1.length() > f2.length()) return 1;
-            else if (f1.length() < f2.length()) return -1;
-            else return 0;
-        }
+    private Comparator<File> bySize = (f1, f2) -> {
+        if (f1.length() > f2.length()) return 1;
+        else if (f1.length() < f2.length()) return -1;
+        else return 0;
     };
-    private Comparator<File> bySizeDesc = new Comparator<File>() {
-        @Override
-        public int compare(File f1, File f2) {
-            if (f1.length() > f2.length()) return -1;
-            else if (f1.length() < f2.length()) return 1;
-            else return 0;
-        }
+    private Comparator<File> bySizeDesc = (f1, f2) -> {
+        if (f1.length() > f2.length()) return -1;
+        else if (f1.length() < f2.length()) return 1;
+        else return 0;
     };
 
     @Override
@@ -169,13 +154,7 @@ public class FileViewer extends AppCompatActivity
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        fab.setOnClickListener(view -> Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG).setAction("Action", null).show());
         drawer = findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
         drawer.addDrawerListener(toggle);
@@ -185,91 +164,35 @@ public class FileViewer extends AppCompatActivity
         lv = findViewById(R.id.list);
         registerForContextMenu(lv);
         lv.setEmptyView(findViewById(R.id.empty));
-        lv.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                openFile(files[i]);
-            }
-        });
+        lv.setOnItemClickListener((adapterView, view, i, l) -> openFile(files[i]));
         homeViewLayout = findViewById(R.id.home_view);
-        homeViewLayout.findViewById(R.id.btn_image_files).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                listMediaFiles(1);
-            }
+        homeViewLayout.findViewById(R.id.btn_image_files).setOnClickListener(view -> listMediaFiles(1));
+        homeViewLayout.findViewById(R.id.btn_music_files).setOnClickListener(view -> listMediaFiles(2));
+        homeViewLayout.findViewById(R.id.btn_video_files).setOnClickListener(view -> listMediaFiles(3));
+        homeViewLayout.findViewById(R.id.btn_document_files).setOnClickListener(view -> listMediaFiles(4));
+        homeViewLayout.findViewById(R.id.btn_archive_files).setOnClickListener(view -> listMediaFiles(5));
+        homeViewLayout.findViewById(R.id.btn_text_files).setOnClickListener(view -> listMediaFiles(6));
+        homeViewLayout.findViewById(R.id.btn_apps).setOnClickListener(view -> listMediaFiles(7));
+        homeViewLayout.findViewById(R.id.btn_camera_folder).setOnClickListener(view -> {
+            File f = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+            if (f == null || "".equals(f.getPath()) || !f.exists())
+                f = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM");
+            if (f.exists())
+                updateFiles(f);
+            else
+                showMsg("Camera folder not accessible", 1);
         });
-        homeViewLayout.findViewById(R.id.btn_music_files).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                listMediaFiles(2);
-            }
+        homeViewLayout.findViewById(R.id.btn_downloads_folder).setOnClickListener(view -> {
+            File f = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+            if (f == null || "".equals(f.getPath()) || !f.exists())
+                f = new File(Environment.getExternalStorageDirectory().getPath() + "/Downloads");
+            if (f.exists())
+                updateFiles(f);
+            else
+                showMsg("Downloads folder not accessible", 1);
         });
-        homeViewLayout.findViewById(R.id.btn_video_files).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                listMediaFiles(3);
-            }
-        });
-        homeViewLayout.findViewById(R.id.btn_document_files).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                listMediaFiles(4);
-            }
-        });
-        homeViewLayout.findViewById(R.id.btn_archive_files).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                listMediaFiles(5);
-            }
-        });
-        homeViewLayout.findViewById(R.id.btn_text_files).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                listMediaFiles(6);
-            }
-        });
-        homeViewLayout.findViewById(R.id.btn_apps).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                listMediaFiles(7);
-            }
-        });
-        homeViewLayout.findViewById(R.id.btn_camera_folder).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                File f = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
-                if (f == null || "".equals(f.getPath()) || !f.exists())
-                    f = new File(Environment.getExternalStorageDirectory().getPath() + "/DCIM");
-                if (f.exists())
-                    updateFiles(f);
-                else
-                    showMsg("Camera folder not accessible", 1);
-            }
-        });
-        homeViewLayout.findViewById(R.id.btn_downloads_folder).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                File f = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-                if (f == null || "".equals(f.getPath()) || !f.exists())
-                    f = new File(Environment.getExternalStorageDirectory().getPath() + "/Downloads");
-                if (f.exists())
-                    updateFiles(f);
-                else
-                    showMsg("Downloads folder not accessible", 1);
-            }
-        });
-        homeViewLayout.findViewById(R.id.btn_favourites_view).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                favouriteFiles();
-            }
-        });
-        homeViewLayout.findViewById(R.id.btn_recents_view).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                recentFiles();
-            }
-        });
+        homeViewLayout.findViewById(R.id.btn_favourites_view).setOnClickListener(view -> favouriteFiles());
+        homeViewLayout.findViewById(R.id.btn_recents_view).setOnClickListener(view -> recentFiles());
         //Restore data
         recent = new RecentFilesStack(10);
         favourites = new ArrayList<>();
@@ -314,12 +237,7 @@ public class FileViewer extends AppCompatActivity
                 } else {
                     name.setText("External Storage");
                 }
-                storageView.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        updateFiles(f);
-                    }
-                });
+                storageView.setOnClickListener(view -> updateFiles(f));
                 GridLayout.LayoutParams params = new GridLayout.LayoutParams();
                 params.columnSpec = GridLayout.spec(0, 2);
                 homeViewLayout.addView(storageView, i, params);
@@ -360,12 +278,7 @@ public class FileViewer extends AppCompatActivity
         searchView.setSearchableInfo(searchManager.getSearchableInfo(getComponentName()));
         searchView.setSubmitButtonEnabled(true);
         searchView.setOnQueryTextListener(this);
-        searchView.setOnCloseListener(new SearchView.OnCloseListener() {
-            @Override
-            public boolean onClose() {
-                return false;
-            }
-        });
+        searchView.setOnCloseListener(() -> false);
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -461,57 +374,41 @@ public class FileViewer extends AppCompatActivity
             recent_items_checkbox.setChecked(storeRecentItems);
             sort_criteria.setSelection(sortCriterion);
             sort_mode.setSelection(sortDesc ? 1 : 0);
-            settings_view.findViewById(R.id.btn_clear_fav).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    favourites.clear();
-                }
-            });
-            settings_view.findViewById(R.id.btn_clear_recent).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    recent.clear();
-                }
-            });
-            settings_dialog.setPositiveButton("Save", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    listFoldersFirst = folders_first_checkbox.isChecked();
-                    showHiddenFiles = hidden_files_checkbox.isChecked();
-                    storeRecentItems = recent_items_checkbox.isChecked();
-                    String sortBy = sort_criteria.getSelectedItem().toString();
-                    sortDesc = sort_mode.getSelectedItem().toString().equals("Descending");
-                    String criteria[] = getResources().getStringArray(R.array.sort_criteria);
-                    for (i = 0; i < criteria.length; i++) {
-                        if (sortBy.equals(criteria[i])) {
-                            sortCriterion = i;
-                            break;
-                        }
+            settings_view.findViewById(R.id.btn_clear_fav).setOnClickListener(v -> favourites.clear());
+            settings_view.findViewById(R.id.btn_clear_recent).setOnClickListener(v -> recent.clear());
+            settings_dialog.setPositiveButton("Save", (dialogInterface, i) -> {
+                listFoldersFirst = folders_first_checkbox.isChecked();
+                showHiddenFiles = hidden_files_checkbox.isChecked();
+                storeRecentItems = recent_items_checkbox.isChecked();
+                String sortBy = sort_criteria.getSelectedItem().toString();
+                sortDesc = sort_mode.getSelectedItem().toString().equals("Descending");
+                String criteria[] = getResources().getStringArray(R.array.sort_criteria);
+                for (i = 0; i < criteria.length; i++) {
+                    if (sortBy.equals(criteria[i])) {
+                        sortCriterion = i;
+                        break;
                     }
-                    NavigationView nav = findViewById(R.id.nav_view);
-                    nav.getMenu().findItem(R.id.nav_recent).setVisible(storeRecentItems);
-                    if (recentsView) {
-                        if (storeRecentItems)
-                            recentFiles();
-                        else {
-                            recentsView = false;
-                            updateFiles(Environment.getExternalStorageDirectory());
-                        }
-                    } else if (favouritesView)
-                        favouriteFiles();
-                    else
-                        updateFiles(file);
-                    showMsg("Settings saved", 1);
-                    dialogInterface.dismiss();
-                    dialogInterface.cancel();
                 }
+                NavigationView nav = findViewById(R.id.nav_view);
+                nav.getMenu().findItem(R.id.nav_recent).setVisible(storeRecentItems);
+                if (recentsView) {
+                    if (storeRecentItems)
+                        recentFiles();
+                    else {
+                        recentsView = false;
+                        updateFiles(Environment.getExternalStorageDirectory());
+                    }
+                } else if (favouritesView)
+                    favouriteFiles();
+                else
+                    updateFiles(file);
+                showMsg("Settings saved", 1);
+                dialogInterface.dismiss();
+                dialogInterface.cancel();
             });
-            settings_dialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    dialogInterface.dismiss();
-                    dialogInterface.cancel();
-                }
+            settings_dialog.setNegativeButton("Cancel", (dialogInterface, i) -> {
+                dialogInterface.dismiss();
+                dialogInterface.cancel();
             });
             settings_dialog.show();
         } else if (id == R.id.nav_about) {
@@ -519,12 +416,9 @@ public class FileViewer extends AppCompatActivity
             about_dialog.setIcon(R.mipmap.ic_launcher);
             about_dialog.setTitle("Vudit");
             about_dialog.setMessage("Version 1.0\nBy - Praharsh Jain\npraharshsamria@gmail.com");
-            about_dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    dialogInterface.dismiss();
-                    dialogInterface.cancel();
-                }
+            about_dialog.setPositiveButton("OK", (dialogInterface, i) -> {
+                dialogInterface.dismiss();
+                dialogInterface.cancel();
             });
             about_dialog.show();
         } else if (id == R.id.nav_feedback) {
@@ -647,43 +541,37 @@ public class FileViewer extends AppCompatActivity
                     confirmation_dialog.setIcon(android.R.drawable.ic_delete);
                     confirmation_dialog.setTitle("Delete");
                     confirmation_dialog.setMessage("Are you sure you want to delete " + current_file.getName() + "?");
-                    confirmation_dialog.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int btn) {
-                            if (deleteFiles(current_file)) {
-                                showMsg(current_file.getName() + " successfully deleted", 1);
-                                updateFiles(current_file.getParentFile());
-                                //update recents and favorites
-                                int i, n = favourites.size();
-                                File arr[] = new File[n];
-                                favourites.toArray(arr);
-                                favourites.clear();
-                                for (i = 0; i < n; i++) {
-                                    File f = arr[i];
-                                    if (f.exists())
-                                        favourites.add(f);
-                                }
-                                RecentFilesStack temp = (RecentFilesStack<File>) recent.clone();
-                                n = temp.size();
-                                recent.clear();
-                                for (i = 0; i < n; i++) {
-                                    File f = (File) temp.get(i);
-                                    if (f.exists())
-                                        recent.push(f);
-                                }
-                            } else {
-                                showMsg(current_file.getName() + " could not be deleted", 1);
+                    confirmation_dialog.setPositiveButton("Yes", (dialogInterface, btn) -> {
+                        if (deleteFiles(current_file)) {
+                            showMsg(current_file.getName() + " successfully deleted", 1);
+                            updateFiles(current_file.getParentFile());
+                            //update recents and favorites
+                            int i, n = favourites.size();
+                            File arr[] = new File[n];
+                            favourites.toArray(arr);
+                            favourites.clear();
+                            for (i = 0; i < n; i++) {
+                                File f = arr[i];
+                                if (f.exists())
+                                    favourites.add(f);
                             }
-                            dialogInterface.dismiss();
-                            dialogInterface.cancel();
+                            RecentFilesStack temp = (RecentFilesStack<File>) recent.clone();
+                            n = temp.size();
+                            recent.clear();
+                            for (i = 0; i < n; i++) {
+                                File f = (File) temp.get(i);
+                                if (f.exists())
+                                    recent.push(f);
+                            }
+                        } else {
+                            showMsg(current_file.getName() + " could not be deleted", 1);
                         }
+                        dialogInterface.dismiss();
+                        dialogInterface.cancel();
                     });
-                    confirmation_dialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            dialogInterface.dismiss();
-                            dialogInterface.cancel();
-                        }
+                    confirmation_dialog.setNegativeButton("No", (dialogInterface, i) -> {
+                        dialogInterface.dismiss();
+                        dialogInterface.cancel();
                     });
                     confirmation_dialog.show();
                 }
@@ -829,53 +717,41 @@ public class FileViewer extends AppCompatActivity
 
                         }
                     });
-                    btn_play.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            if (mp.isPlaying()) {
-                                mp.pause();
-                                btn_play.setImageResource(android.R.drawable.ic_media_play);
-                            } else {
-                                mp.start();
-                                btn_play.setImageResource(android.R.drawable.ic_media_pause);
-                            }
+                    btn_play.setOnClickListener(view -> {
+                        if (mp.isPlaying()) {
+                            mp.pause();
+                            btn_play.setImageResource(android.R.drawable.ic_media_play);
+                        } else {
+                            mp.start();
+                            btn_play.setImageResource(android.R.drawable.ic_media_pause);
                         }
                     });
-                    btn_forward.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            int max = mp.getDuration();
-                            int newpos = mp.getCurrentPosition() + 5000;
-                            if (newpos > max) {
-                                mp.seekTo(max);
-                                seek.setProgress(max);
-                            } else {
-                                mp.seekTo(newpos);
-                                seek.setProgress(newpos);
-                            }
+                    btn_forward.setOnClickListener(view -> {
+                        int max = mp.getDuration();
+                        int newpos = mp.getCurrentPosition() + 5000;
+                        if (newpos > max) {
+                            mp.seekTo(max);
+                            seek.setProgress(max);
+                        } else {
+                            mp.seekTo(newpos);
+                            seek.setProgress(newpos);
                         }
                     });
-                    btn_rev.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            int newpos = mp.getCurrentPosition() - 5000;
-                            if (newpos > 0) {
-                                mp.seekTo(newpos);
-                                seek.setProgress(newpos);
-                            } else {
-                                mp.seekTo(0);
-                                seek.setProgress(0);
-                            }
+                    btn_rev.setOnClickListener(view -> {
+                        int newpos = mp.getCurrentPosition() - 5000;
+                        if (newpos > 0) {
+                            mp.seekTo(newpos);
+                            seek.setProgress(newpos);
+                        } else {
+                            mp.seekTo(0);
+                            seek.setProgress(0);
                         }
                     });
                     final AlertDialog.Builder player_dialog = new AlertDialog.Builder(new ContextThemeWrapper(FileViewer.this, android.R.style.Theme_Black));
-                    player_dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                        @Override
-                        public void onCancel(DialogInterface dialogInterface) {
-                            handler.removeCallbacks(updateseek);
-                            mp.stop();
-                            mp.reset();
-                        }
+                    player_dialog.setOnCancelListener(dialogInterface -> {
+                        handler.removeCallbacks(updateseek);
+                        mp.stop();
+                        mp.reset();
                     });
                     player_dialog.setView(player);
                     player_dialog.show();
@@ -1095,12 +971,9 @@ public class FileViewer extends AppCompatActivity
             };
             t.start();
         }
-        properties_dialog.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                dialogInterface.dismiss();
-                dialogInterface.cancel();
-            }
+        properties_dialog.setPositiveButton("OK", (dialogInterface, i) -> {
+            dialogInterface.dismiss();
+            dialogInterface.cancel();
         });
         properties_dialog.show();
     }
@@ -1348,6 +1221,7 @@ public class FileViewer extends AppCompatActivity
     }
 
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         for (int res : grantResults) {
             if (res != PackageManager.PERMISSION_GRANTED) {
                 showMsg("Permissions not granted", 0);
