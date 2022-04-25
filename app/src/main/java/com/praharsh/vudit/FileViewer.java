@@ -112,7 +112,7 @@ public class FileViewer extends AppCompatActivity
     private EfficientAdapter adap;
     private FileFilter fileFilter;
     private Intent in;
-    private TextView current_duration, total_duration, title;
+    private TextView current_duration, total_duration, title, emptyListView;
     private ImageButton btn_play, btn_rev, btn_forward;
     private SeekBar seek;
     private byte[] data;
@@ -210,7 +210,7 @@ public class FileViewer extends AppCompatActivity
         String s = "";
         if (file.getParent() != null) {
             try {
-                ProcessBuilder processBuilder = new ProcessBuilder("ls", "-l").directory(new File(file.getParent()));// TODO CHECK IF THE FILE IS SD CARD PARENT IS NULL
+                ProcessBuilder processBuilder = new ProcessBuilder("ls", "-l").directory(new File(file.getParent()));
                 Process process = processBuilder.start();
                 PrintWriter out = new PrintWriter(new OutputStreamWriter(process.getOutputStream()));
                 BufferedReader in = new BufferedReader(new InputStreamReader(process.getInputStream()));
@@ -278,7 +278,8 @@ public class FileViewer extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         lv = findViewById(R.id.list);
         registerForContextMenu(lv);
-        lv.setEmptyView(findViewById(R.id.empty));
+        emptyListView=findViewById(R.id.empty);
+        lv.setEmptyView(emptyListView);
         lv.setOnItemClickListener((adapterView, view, i, l) -> openFile(files[i]));
         homeViewLayout = findViewById(R.id.home_view);
         homeViewLayout.findViewById(R.id.btn_image_files).setOnClickListener(view -> listMediaFiles(1));
@@ -409,16 +410,10 @@ public class FileViewer extends AppCompatActivity
                     switchToHomeView();
                 else if (file != null)
                     updateFiles(file);
-                else
-                    //Todo: something here
-                    ;
                 break;
             case R.id.action_info:
                 if (file != null)
                     showProperties(file);
-                else
-                    //Todo: something here
-                    ;
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -1137,6 +1132,7 @@ public class FileViewer extends AppCompatActivity
     private void updateList() {
         homeView = false;
         lv.setVisibility(View.VISIBLE);
+        emptyListView.setVisibility(View.VISIBLE);
         homeViewLayout.setVisibility(View.GONE);
         if (adap != null) {
             adap.notifyDataSetChanged();
@@ -1467,9 +1463,12 @@ public class FileViewer extends AppCompatActivity
 
     private void switchToHomeView() {
         homeView = true;
+        recentsView=false;
+        favouritesView=false;
         toolbar.setTitle("Vudit");
         homeViewLayout.setVisibility(View.VISIBLE);
         lv.setVisibility(View.GONE);
+        emptyListView.setVisibility(View.GONE);
     }
 
     private static class ViewHolder {
