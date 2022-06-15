@@ -5,6 +5,7 @@ import static com.praharsh.vudit.Util.getSDCard;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -25,6 +26,7 @@ import android.os.Environment;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.view.ContextMenu;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
@@ -73,6 +75,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -95,6 +98,7 @@ public class FileViewer extends AppCompatActivity
     private static final String[] requiredpermissions = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
+            Manifest.permission.MANAGE_EXTERNAL_STORAGE,
             Manifest.permission.INTERNET,
             Manifest.permission.ACCESS_NETWORK_STATE,
     };
@@ -278,7 +282,7 @@ public class FileViewer extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
         lv = findViewById(R.id.list);
         registerForContextMenu(lv);
-        emptyListView=findViewById(R.id.empty);
+        emptyListView = findViewById(R.id.empty);
         lv.setEmptyView(emptyListView);
         lv.setOnItemClickListener((adapterView, view, i, l) -> openFile(files[i]));
         homeViewLayout = findViewById(R.id.home_view);
@@ -339,6 +343,7 @@ public class FileViewer extends AppCompatActivity
             final File f = new File(path);
             if (f.exists()) {
                 RelativeLayout storageView = (RelativeLayout) getLayoutInflater().inflate(R.layout.storage_view, null, false);
+                storageView.setBackgroundColor(android.R.drawable.dialog_holo_dark_frame);
                 TextView details = storageView.findViewById(R.id.storage_details);
                 TextView name = storageView.findViewById(R.id.storage_name);
                 ProgressBar storageBar = storageView.findViewById(R.id.storage_bar);
@@ -572,15 +577,16 @@ public class FileViewer extends AppCompatActivity
             } else {
                 menu.add(Menu.NONE, 1, Menu.NONE, "Open with default system action");
                 String ext = Util.extension(current_file.getName());
-                if (Util.web_ext.contains(ext))
+                if (Util.web_ext.contains(ext)) {
                     menu.add(Menu.NONE, 2, Menu.NONE, "Preview");
+                }
                 menu.add(Menu.NONE, 3, Menu.NONE, "Share");
             }
             if (recentsView) {
                 menu.add(Menu.NONE, 4, Menu.NONE, "Remove from Recent Items");
             } else if (favouritesView) {
                 menu.add(Menu.NONE, 4, Menu.NONE, "Open parent directory");
-            } else {
+            } else if (current_file.canWrite()) {
                 menu.add(Menu.NONE, 4, Menu.NONE, "Delete");
             }
             menu.add(Menu.NONE, 5, Menu.NONE, favouritesView ? "Remove from Favourites" : "Add to Favourites");
@@ -622,8 +628,9 @@ public class FileViewer extends AppCompatActivity
                 share.setAction(Intent.ACTION_SEND);
                 MimeTypeMap myMime = MimeTypeMap.getSingleton();
                 String mimeType = myMime.getMimeTypeFromExtension(Util.extension(current_file.getName()));
+                Uri uri = FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName(), current_file);
                 share.setType(mimeType);
-                share.putExtra(Intent.EXTRA_STREAM, Uri.fromFile(current_file));
+                share.putExtra(Intent.EXTRA_STREAM, uri);
                 try {
                     startActivity(share);
                 } catch (Exception e) {
@@ -975,7 +982,10 @@ public class FileViewer extends AppCompatActivity
                     year = ((year == null || "".equals(year)) ? "Unknown" : year);
                     bitrate = meta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE);
                     bitrate = ((bitrate == null || "".equals(bitrate)) ? "Unknown" : bitrate);
-                    meta.release();
+                    try {
+                        meta.release();
+                    } catch (IOException e) {
+                    }
                     info += "\nTrack Duration : " + Util.getFormattedTimeDuration(duration);
                     info += "\nAlbum : " + album;
                     info += "\nArtist : " + artist;
@@ -1018,7 +1028,10 @@ public class FileViewer extends AppCompatActivity
                     height = ((height == null || "".equals(height)) ? "Unknown" : height);
                     String width = meta.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH);
                     width = ((width == null || "".equals(width)) ? "Unknown" : width);
-                    meta.release();
+                    try {
+                        meta.release();
+                    }catch (IOException e){
+                    }
                     info += "\nTrack Duration : " + Util.getFormattedTimeDuration(duration);
                     info += "\nBitrate : " + bitrate;
                     info += "\nWidth : " + width;
@@ -1321,7 +1334,6 @@ public class FileViewer extends AppCompatActivity
         for (int res : grantResults) {
             if (res != PackageManager.PERMISSION_GRANTED) {
                 showMsg("Permissions not granted", 0);
-                finish();
                 return;
             }
         }
@@ -1344,6 +1356,11 @@ public class FileViewer extends AppCompatActivity
         if (!neededPermissions.isEmpty()) {
             ActivityCompat.requestPermissions(this, neededPermissions.toArray(new String[neededPermissions.size()]), REQUEST_ID_MULTIPLE_PERMISSIONS);
         }
+        if (SDK_INT >= Build.VERSION_CODES.R && !Environment.isExternalStorageManager()) {
+            Intent in = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION);
+            in.setData(Uri.fromParts("package", getPackageName(), null));
+            startActivity(in);
+        }
     }
 
     private void showMsg(String msg, int mode) {
@@ -1365,12 +1382,11 @@ public class FileViewer extends AppCompatActivity
     }
 
     private void listMediaFiles(int type) {
-        Uri uri = null;
         String toolbarTitle = "";
         String selectionQuery = null;
         String[] selectionArgs = null;
         ArrayList<File> fileList = null;
-        uri = MediaStore.Files.getContentUri("external");
+        Uri uri = MediaStore.Files.getContentUri("external");
         switch (type) {
             case 1: //images
                 toolbarTitle = "Pictures";
@@ -1463,8 +1479,8 @@ public class FileViewer extends AppCompatActivity
 
     private void switchToHomeView() {
         homeView = true;
-        recentsView=false;
-        favouritesView=false;
+        recentsView = false;
+        favouritesView = false;
         toolbar.setTitle("Vudit");
         homeViewLayout.setVisibility(View.VISIBLE);
         lv.setVisibility(View.GONE);

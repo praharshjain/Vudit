@@ -29,7 +29,7 @@
             <Button
                 android:id="@+id/btn_image_files"
                 android:layout_height="wrap_content"
-                android:background="@android:drawable/dialog_holo_light_frame"
+                android:background="@android:drawable/dialog_holo_dark_frame"
                 android:drawableStart="@drawable/file_image"
                 android:drawablePadding="10dp"
                 android:padding="20dp"
@@ -37,12 +37,13 @@
                 android:text="Pictures"
                 android:textAlignment="textStart"
                 android:textAllCaps="false"
+                android:textColor="@color/cardview_light_background"
                 app:layout_columnWeight="1" />
 
             <Button
                 android:id="@+id/btn_music_files"
                 android:layout_height="wrap_content"
-                android:background="@android:drawable/dialog_holo_light_frame"
+                android:background="@android:drawable/dialog_holo_dark_frame"
                 android:drawableLeft="@drawable/file_music"
                 android:drawablePadding="10dp"
                 android:padding="20dp"
@@ -50,12 +51,13 @@
                 android:text="Music"
                 android:textAlignment="textStart"
                 android:textAllCaps="false"
+                android:textColor="@color/cardview_light_background"
                 app:layout_columnWeight="1" />
 
             <Button
                 android:id="@+id/btn_video_files"
                 android:layout_height="wrap_content"
-                android:background="@android:drawable/dialog_holo_light_frame"
+                android:background="@android:drawable/dialog_holo_dark_frame"
                 android:drawableLeft="@drawable/file_video"
                 android:drawablePadding="10dp"
                 android:padding="20dp"
@@ -63,12 +65,13 @@
                 android:text="Videos"
                 android:textAlignment="textStart"
                 android:textAllCaps="false"
+                android:textColor="@color/cardview_light_background"
                 app:layout_columnWeight="1" />
 
             <Button
                 android:id="@+id/btn_document_files"
                 android:layout_height="wrap_content"
-                android:background="@android:drawable/dialog_holo_light_frame"
+                android:background="@android:drawable/dialog_holo_dark_frame"
                 android:drawableLeft="@drawable/file_doc"
                 android:drawablePadding="10dp"
                 android:padding="20dp"
@@ -76,12 +79,13 @@
                 android:text="Documents"
                 android:textAlignment="textStart"
                 android:textAllCaps="false"
+                android:textColor="@color/cardview_light_background"
                 app:layout_columnWeight="1" />
 
             <Button
                 android:id="@+id/btn_apps"
                 android:layout_height="wrap_content"
-                android:background="@android:drawable/dialog_holo_light_frame"
+                android:background="@android:drawable/dialog_holo_dark_frame"
                 android:drawableLeft="@drawable/file_apk"
                 android:drawablePadding="10dp"
                 android:padding="20dp"
@@ -89,12 +93,13 @@
                 android:text="Apps"
                 android:textAlignment="textStart"
                 android:textAllCaps="false"
+                android:textColor="@color/cardview_light_background"
                 app:layout_columnWeight="1" />
 
             <Button
                 android:id="@+id/btn_text_files"
                 android:layout_height="wrap_content"
-                android:background="@android:drawable/dialog_holo_light_frame"
+                android:background="@android:drawable/dialog_holo_dark_frame"
                 android:drawableLeft="@drawable/file_default"
                 android:drawablePadding="10dp"
                 android:padding="20dp"
@@ -102,12 +107,13 @@
                 android:text="Text files"
                 android:textAlignment="textStart"
                 android:textAllCaps="false"
+                android:textColor="@color/cardview_light_background"
                 app:layout_columnWeight="1" />
 
             <Button
                 android:id="@+id/btn_archive_files"
                 android:layout_height="wrap_content"
-                android:background="@android:drawable/dialog_holo_light_frame"
+                android:background="@android:drawable/dialog_holo_dark_frame"
                 android:drawableLeft="@drawable/file_archive"
                 android:drawablePadding="10dp"
                 android:padding="20dp"
@@ -115,12 +121,13 @@
                 android:text="Archives"
                 android:textAlignment="textStart"
                 android:textAllCaps="false"
+                android:textColor="@color/cardview_light_background"
                 app:layout_columnWeight="1" />
 
             <Button
                 android:id="@+id/btn_camera_folder"
                 android:layout_height="wrap_content"
-                android:background="@android:drawable/dialog_holo_light_frame"
+                android:background="@android:drawable/dialog_holo_dark_frame"
                 android:drawableLeft="@android:drawable/ic_menu_camera"
                 android:drawablePadding="10dp"
                 android:padding="20dp"
@@ -128,12 +135,13 @@
                 android:text="Camera"
                 android:textAlignment="textStart"
                 android:textAllCaps="false"
+                android:textColor="@color/cardview_light_background"
                 app:layout_columnWeight="1" />
 
             <Button
                 android:id="@+id/btn_downloads_folder"
                 android:layout_height="wrap_content"
-                android:background="@android:drawable/dialog_holo_light_frame"
+                android:background="@android:drawable/dialog_holo_dark_frame"
                 android:drawableLeft="@drawable/downloads"
                 android:drawablePadding="10dp"
                 android:padding="20dp"
@@ -141,12 +149,13 @@
                 android:text="Downloads"
                 android:textAlignment="textStart"
                 android:textAllCaps="false"
+                android:textColor="@color/cardview_light_background"
                 app:layout_columnWeight="1" />
 
             <Button
                 android:id="@+id/btn_favourites_view"
                 android:layout_height="wrap_content"
-                android:background="@android:drawable/dialog_holo_light_frame"
+                android:background="@android:drawable/dialog_holo_dark_frame"
                 android:drawableLeft="@android:drawable/btn_star_big_on"
                 android:drawablePadding="10dp"
                 android:padding="20dp"
@@ -154,12 +163,13 @@
                 android:text="Favourites"
                 android:textAlignment="textStart"
                 android:textAllCaps="false"
+                android:textColor="@color/cardview_light_background"
                 app:layout_columnWeight="1" />
 
             <Button
                 android:id="@+id/btn_recents_view"
                 android:layout_height="wrap_content"
-                android:background="@android:drawable/dialog_holo_light_frame"
+                android:background="@android:drawable/dialog_holo_dark_frame"
                 android:drawableLeft="@android:drawable/ic_menu_recent_history"
                 android:drawablePadding="10dp"
                 android:padding="20dp"
@@ -167,6 +177,7 @@
                 android:text="Recent Items"
                 android:textAlignment="textStart"
                 android:textAllCaps="false"
+                android:textColor="@color/cardview_light_background"
                 app:layout_columnWeight="1" />
         </androidx.gridlayout.widget.GridLayout>
     </ScrollView>

@@ -40,7 +40,6 @@ public class WebViewBaseActivity extends AppCompatActivity {
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(true);
         settings.setAllowContentAccess(true);
-        settings.setAppCacheEnabled(true);
         settings.setDatabaseEnabled(true);
         settings.setPluginState(WebSettings.PluginState.ON);
         settings.setAllowFileAccessFromFileURLs(true);
