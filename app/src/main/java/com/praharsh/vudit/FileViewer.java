@@ -5,7 +5,6 @@ import static com.praharsh.vudit.Util.getSDCard;
 
 import android.Manifest;
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -1030,7 +1029,7 @@ public class FileViewer extends AppCompatActivity
                     width = ((width == null || "".equals(width)) ? "Unknown" : width);
                     try {
                         meta.release();
-                    }catch (IOException e){
+                    } catch (IOException e) {
                     }
                     info += "\nTrack Duration : " + Util.getFormattedTimeDuration(duration);
                     info += "\nBitrate : " + bitrate;
