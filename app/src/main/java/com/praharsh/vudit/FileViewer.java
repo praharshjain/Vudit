@@ -94,7 +94,7 @@ public class FileViewer extends AppCompatActivity
         SearchView.OnQueryTextListener {
     private static final int REQUEST_ID_MULTIPLE_PERMISSIONS = 1, SDCARD_WRITE_PERMISSION_REQUEST_CODE = 100;
     private static final String tempPath = Environment.getExternalStorageDirectory().getPath() + "/Vudit/temp/";
-    private static final String[] requiredpermissions = {
+    private static final String[] requiredPermissions = {
             Manifest.permission.READ_EXTERNAL_STORAGE,
             Manifest.permission.WRITE_EXTERNAL_STORAGE,
             Manifest.permission.MANAGE_EXTERNAL_STORAGE,
@@ -106,15 +106,14 @@ public class FileViewer extends AppCompatActivity
         Image, Audio, Video, Document, Archive, Text, APK,
     }
 
-    private static boolean mBusy = false, recentsView = false, favouritesView = false, homeView = true;
+    private static boolean isValid, mBusy = false, recentsView = false, favouritesView = false, homeView = true, sortDesc = false, listFoldersFirst = true, storeRecentItems = true, showHiddenFiles = true;
     private static ViewHolder holder;
     private Toolbar toolbar;
     private DrawerLayout drawer;
     private ListView lv;
     private GridLayout homeViewLayout;
     private File file;
-    private File[] files;
-    private File[] origFiles;
+    private File[] files, origFiles;
     private RecentFilesStack recent;
     private ArrayList<File> favourites;
     private EfficientAdapter adap;
@@ -125,7 +124,6 @@ public class FileViewer extends AppCompatActivity
     private SeekBar seek;
     private byte[] data;
     private int sortCriterion = 0;
-    private boolean isValid, sortDesc = false, listFoldersFirst = true, storeRecentItems = true, showHiddenFiles = true;
     //Comparators for sorting
     private final Comparator<File> byName = (f1, f2) -> {
         int res = String.CASE_INSENSITIVE_ORDER.compare(f1.getName(), f2.getName());
@@ -716,7 +714,6 @@ public class FileViewer extends AppCompatActivity
 
     @Override
     public void onScroll(AbsListView absListView, int i, int i1, int i2) {
-
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent resultData) {
@@ -1342,7 +1339,7 @@ public class FileViewer extends AppCompatActivity
     private List<String> getNeededPermissions() {
         List<String> listPermissionsNeeded = new ArrayList<>();
         if (SDK_INT >= Build.VERSION_CODES.M) {
-            for (String permission : requiredpermissions) {
+            for (String permission : requiredPermissions) {
                 if (ContextCompat.checkSelfPermission(getApplicationContext(), permission) != PackageManager.PERMISSION_GRANTED) {
                     listPermissionsNeeded.add(permission);
                 }
