@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Util {
     //supported extensions
-    static final List<String> audio_ext = Arrays.asList("mp3", "oog", "wav", "mid", "m4a", "amr");
+    static final List<String> audio_ext = Arrays.asList("mp3", "ogg", "wav", "mid", "m4a", "amr");
     static final List<String> image_ext = Arrays.asList("png", "jpg", "gif", "bmp", "jpeg", "webp");
 
     static final List<String> video_ext = Arrays.asList("mp4", "3gp", "mkv", "webm", "flv", "m4v");

@@ -101,6 +101,11 @@ public class FileViewer extends AppCompatActivity
             Manifest.permission.INTERNET,
             Manifest.permission.ACCESS_NETWORK_STATE,
     };
+
+    private enum MediaFileType {
+        Image, Audio, Video, Document, Archive, Text, APK,
+    }
+
     private static boolean mBusy = false, recentsView = false, favouritesView = false, homeView = true;
     private static ViewHolder holder;
     private Toolbar toolbar;
@@ -127,24 +132,16 @@ public class FileViewer extends AppCompatActivity
         return (res == 0 ? f1.getName().compareTo(f2.getName()) : res);
     };
     private final Comparator<File> byDate = (f1, f2) -> {
-        if (f1.lastModified() > f2.lastModified()) return 1;
-        else if (f1.lastModified() < f2.lastModified()) return -1;
-        else return 0;
+        return Long.compare(f1.lastModified(), f2.lastModified());
     };
     private final Comparator<File> byDateDesc = (f1, f2) -> {
-        if (f1.lastModified() > f2.lastModified()) return -1;
-        else if (f1.lastModified() < f2.lastModified()) return 1;
-        else return 0;
+        return Long.compare(f2.lastModified(), f1.lastModified());
     };
     private final Comparator<File> bySize = (f1, f2) -> {
-        if (f1.length() > f2.length()) return 1;
-        else if (f1.length() < f2.length()) return -1;
-        else return 0;
+        return Long.compare(f1.length(), f2.length());
     };
     private final Comparator<File> bySizeDesc = (f1, f2) -> {
-        if (f1.length() > f2.length()) return -1;
-        else if (f1.length() < f2.length()) return 1;
-        else return 0;
+        return Long.compare(f2.length(), f1.length());
     };
 
     private static boolean deleteFiles(File f) {
@@ -159,7 +156,8 @@ public class FileViewer extends AppCompatActivity
                 deleted &= deleteFiles(arr[i]);
             }
             return deleted && f.delete();
-        } else return f.delete();
+        }
+        return f.delete();
     }
 
     private static String unpackZip(File zipFile, File targetDirectory) {
@@ -285,13 +283,13 @@ public class FileViewer extends AppCompatActivity
         lv.setEmptyView(emptyListView);
         lv.setOnItemClickListener((adapterView, view, i, l) -> openFile(files[i]));
         homeViewLayout = findViewById(R.id.home_view);
-        homeViewLayout.findViewById(R.id.btn_image_files).setOnClickListener(view -> listMediaFiles(1));
-        homeViewLayout.findViewById(R.id.btn_music_files).setOnClickListener(view -> listMediaFiles(2));
-        homeViewLayout.findViewById(R.id.btn_video_files).setOnClickListener(view -> listMediaFiles(3));
-        homeViewLayout.findViewById(R.id.btn_document_files).setOnClickListener(view -> listMediaFiles(4));
-        homeViewLayout.findViewById(R.id.btn_archive_files).setOnClickListener(view -> listMediaFiles(5));
-        homeViewLayout.findViewById(R.id.btn_text_files).setOnClickListener(view -> listMediaFiles(6));
-        homeViewLayout.findViewById(R.id.btn_apps).setOnClickListener(view -> listMediaFiles(7));
+        homeViewLayout.findViewById(R.id.btn_image_files).setOnClickListener(view -> listMediaFiles(MediaFileType.Image));
+        homeViewLayout.findViewById(R.id.btn_music_files).setOnClickListener(view -> listMediaFiles(MediaFileType.Audio));
+        homeViewLayout.findViewById(R.id.btn_video_files).setOnClickListener(view -> listMediaFiles(MediaFileType.Video));
+        homeViewLayout.findViewById(R.id.btn_document_files).setOnClickListener(view -> listMediaFiles(MediaFileType.Document));
+        homeViewLayout.findViewById(R.id.btn_archive_files).setOnClickListener(view -> listMediaFiles(MediaFileType.Archive));
+        homeViewLayout.findViewById(R.id.btn_text_files).setOnClickListener(view -> listMediaFiles(MediaFileType.Text));
+        homeViewLayout.findViewById(R.id.btn_apps).setOnClickListener(view -> listMediaFiles(MediaFileType.APK));
         homeViewLayout.findViewById(R.id.btn_camera_folder).setOnClickListener(view -> {
             File f = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
             if (f == null || "".equals(f.getPath()) || !f.exists())
@@ -784,7 +782,6 @@ public class FileViewer extends AppCompatActivity
                 if (isValid) {
                     ImageView album_art, icon;
                     final View player = getLayoutInflater().inflate(R.layout.music_player, null);
-                    player.findViewById(R.id.icon);
                     btn_play = player.findViewById(R.id.btn_play);
                     btn_rev = player.findViewById(R.id.btn_rev);
                     btn_forward = player.findViewById(R.id.btn_forward);
@@ -919,13 +916,15 @@ public class FileViewer extends AppCompatActivity
         int duration;
         AlertDialog.Builder properties_dialog = new AlertDialog.Builder(FileViewer.this);
         View properties_view = getLayoutInflater().inflate(R.layout.properties_view, null);
-        TextView name = properties_view.findViewById(R.id.name);
-        TextView type = properties_view.findViewById(R.id.type);
-        TextView time = properties_view.findViewById(R.id.time);
+        final TextView name = properties_view.findViewById(R.id.name);
+        final TextView type = properties_view.findViewById(R.id.type);
+        final TextView time = properties_view.findViewById(R.id.time);
         final TextView size = properties_view.findViewById(R.id.size);
+        final TextView location = properties_view.findViewById(R.id.location);
         final TextView details = properties_view.findViewById(R.id.details);
         //Fetch properties
         name.setText(current_file.getName());
+        location.setText(current_file.getPath());
         SimpleDateFormat format = new SimpleDateFormat("dd-MMM-yyyy hh:mm:ss a");
         time.setText(format.format(current_file.lastModified()));
         properties_dialog.setTitle("Properties");
@@ -1157,57 +1156,61 @@ public class FileViewer extends AppCompatActivity
         switch (scrollState) {
             case AbsListView.OnScrollListener.SCROLL_STATE_IDLE:
                 mBusy = false;
-                int first = view.getFirstVisiblePosition();
-                int count = view.getChildCount();
-                for (int i = 0; i < count; i++) {
-                    final File current_file = files[first + i];
-                    if (!current_file.exists())
-                        continue;
-                    holder.icon = view.getChildAt(i).findViewById(R.id.icon);
-                    if (current_file.isDirectory()) {
-                        holder.details.setText("");
-                        File[] temp = current_file.listFiles();
-                        int n = (temp != null ? temp.length : 0);
-                        holder.details.setText(n + " items");
-                        holder.icon.setImageResource(n > 0 ? R.drawable.folder : R.drawable.folder_empty);
-                    } else {
-                        holder.details.setText(Util.displaySize(current_file.length()));
-                        String ext = Util.extension(current_file.getName());
-                        if ("apk".equals(ext)) {
-                            String path = current_file.getPath();
-                            PackageManager pm = getPackageManager();
-                            PackageInfo pi = pm.getPackageArchiveInfo(path, 0);
-                            pi.applicationInfo.sourceDir = path;
-                            pi.applicationInfo.publicSourceDir = path;
-                            holder.icon.setImageDrawable(pi.applicationInfo.loadIcon(pm));
-                        } else if ("pdf".equals(ext)) {
-                            holder.icon.setImageResource(R.drawable.file_pdf);
-                        } else if ("svg".equals(ext)) {
-                            holder.icon.setImageResource(R.drawable.file_svg);
-                        } else if ("csv".equals(ext)) {
-                            holder.icon.setImageResource(R.drawable.file_csv);
-                        } else if ("sqlite".equals(ext)) {
-                            holder.icon.setImageResource(R.drawable.file_sqlite);
-                        } else if (Util.audio_ext.contains(ext)) {
-                            holder.icon.setImageResource(R.drawable.file_music);
-                        } else if (Util.image_ext.contains(ext) || Util.video_ext.contains(ext)) {
-                            Glide.with(getApplicationContext()).load(Uri.fromFile(current_file)).placeholder(R.drawable.loading).into(holder.icon);
-                        } else if (Util.archive_ext.contains(ext)) {
-                            holder.icon.setImageResource(R.drawable.file_archive);
-                        } else if (Util.doc_ext.contains(ext)) {
-                            holder.icon.setImageResource(R.drawable.file_doc);
-                        } else if (Util.xl_ext.contains(ext)) {
-                            holder.icon.setImageResource(R.drawable.file_xl);
-                        } else if (Util.ppt_ext.contains(ext)) {
-                            holder.icon.setImageResource(R.drawable.file_ppt);
-                        } else {
-                            holder.icon.setImageResource(R.drawable.file_default);
-                        }
-                    }
-                }
+                refreshList(view);
                 break;
             default:
                 mBusy = true;
+        }
+    }
+
+    private void refreshList(final AbsListView view) {
+        int first = view.getFirstVisiblePosition();
+        int count = view.getChildCount();
+        for (int i = 0; i < count; i++) {
+            final File current_file = files[first + i];
+            if (!current_file.exists())
+                continue;
+            holder.icon = view.getChildAt(i).findViewById(R.id.icon);
+            if (current_file.isDirectory()) {
+                holder.details.setText("");
+                File[] temp = current_file.listFiles();
+                int n = (temp != null ? temp.length : 0);
+                holder.details.setText(n + " items");
+                holder.icon.setImageResource(n > 0 ? R.drawable.folder : R.drawable.folder_empty);
+            } else {
+                holder.details.setText(Util.displaySize(current_file.length()));
+                String ext = Util.extension(current_file.getName());
+                if ("apk".equals(ext)) {
+                    String path = current_file.getPath();
+                    PackageManager pm = getPackageManager();
+                    PackageInfo pi = pm.getPackageArchiveInfo(path, 0);
+                    pi.applicationInfo.sourceDir = path;
+                    pi.applicationInfo.publicSourceDir = path;
+                    holder.icon.setImageDrawable(pi.applicationInfo.loadIcon(pm));
+                } else if ("pdf".equals(ext)) {
+                    holder.icon.setImageResource(R.drawable.file_pdf);
+                } else if ("svg".equals(ext)) {
+                    holder.icon.setImageResource(R.drawable.file_svg);
+                } else if ("csv".equals(ext)) {
+                    holder.icon.setImageResource(R.drawable.file_csv);
+                } else if ("sqlite".equals(ext)) {
+                    holder.icon.setImageResource(R.drawable.file_sqlite);
+                } else if (Util.audio_ext.contains(ext)) {
+                    holder.icon.setImageResource(R.drawable.file_music);
+                } else if (Util.image_ext.contains(ext) || Util.video_ext.contains(ext)) {
+                    Glide.with(getApplicationContext()).load(Uri.fromFile(current_file)).placeholder(R.drawable.loading).into(holder.icon);
+                } else if (Util.archive_ext.contains(ext)) {
+                    holder.icon.setImageResource(R.drawable.file_archive);
+                } else if (Util.doc_ext.contains(ext)) {
+                    holder.icon.setImageResource(R.drawable.file_doc);
+                } else if (Util.xl_ext.contains(ext)) {
+                    holder.icon.setImageResource(R.drawable.file_xl);
+                } else if (Util.ppt_ext.contains(ext)) {
+                    holder.icon.setImageResource(R.drawable.file_ppt);
+                } else {
+                    holder.icon.setImageResource(R.drawable.file_default);
+                }
+            }
         }
     }
 
@@ -1316,9 +1319,7 @@ public class FileViewer extends AppCompatActivity
                 Arrays.sort(f, new Comparator<File>() {
                     @Override
                     public int compare(File f1, File f2) {
-                        if (f1.isDirectory() && !f2.isDirectory()) return -1;
-                        else if (!f1.isDirectory() && f2.isDirectory()) return 1;
-                        else return 0;
+                        return Boolean.compare(!f1.isDirectory(), !f2.isDirectory());
                     }
                 });
             } catch (Exception e) {
@@ -1380,26 +1381,30 @@ public class FileViewer extends AppCompatActivity
         }
     }
 
-    private void listMediaFiles(int type) {
+    private void listMediaFiles(MediaFileType type) {
         String toolbarTitle = "";
         String selectionQuery = null;
         String[] selectionArgs = null;
         ArrayList<File> fileList = null;
-        Uri uri = MediaStore.Files.getContentUri("external");
+        Uri externalURI = MediaStore.Files.getContentUri("external");
+        Uri internalURI = MediaStore.Files.getContentUri("internal");
         switch (type) {
-            case 1: //images
+            case Image:
                 toolbarTitle = "Pictures";
                 fileList = getFileListFromQuery(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, selectionQuery, selectionArgs);
+                fileList.addAll(getFileListFromQuery(MediaStore.Images.Media.INTERNAL_CONTENT_URI, selectionQuery, selectionArgs));
                 break;
-            case 2: //audio
+            case Audio:
                 toolbarTitle = "Music";
                 fileList = getFileListFromQuery(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, selectionQuery, selectionArgs);
+                fileList.addAll(getFileListFromQuery(MediaStore.Audio.Media.INTERNAL_CONTENT_URI, selectionQuery, selectionArgs));
                 break;
-            case 3: //video
+            case Video:
                 toolbarTitle = "Videos";
                 fileList = getFileListFromQuery(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, selectionQuery, selectionArgs);
+                fileList.addAll(getFileListFromQuery(MediaStore.Video.Media.INTERNAL_CONTENT_URI, selectionQuery, selectionArgs));
                 break;
-            case 4: //documents
+            case Document:
                 toolbarTitle = "Documents";
                 List<String> extList = new ArrayList<>(Util.doc_ext);
                 extList.addAll(Util.xl_ext);
@@ -1408,34 +1413,29 @@ public class FileViewer extends AppCompatActivity
                 extList.add("pdf");
                 selectionArgs = Util.getMimeTypeQueryArgs(extList);
                 selectionQuery = Util.getMimeTypeQuery(selectionArgs);
-                fileList = getFileListFromQuery(uri, selectionQuery, selectionArgs);
-                uri = MediaStore.Files.getContentUri("internal");
-                fileList.addAll(getFileListFromQuery(uri, selectionQuery, selectionArgs));
+                fileList = getFileListFromQuery(externalURI, selectionQuery, selectionArgs);
+                fileList.addAll(getFileListFromQuery(internalURI, selectionQuery, selectionArgs));
                 break;
-            case 5: //archives
+            case Archive:
                 toolbarTitle = "Archives";
                 selectionArgs = Util.getMimeTypeQueryArgs(Util.archive_ext);
                 selectionQuery = Util.getMimeTypeQuery(selectionArgs);
-                fileList = getFileListFromQuery(uri, selectionQuery, selectionArgs);
-                uri = MediaStore.Files.getContentUri("internal");
-                fileList.addAll(getFileListFromQuery(uri, selectionQuery, selectionArgs));
+                fileList = getFileListFromQuery(externalURI, selectionQuery, selectionArgs);
+                fileList.addAll(getFileListFromQuery(internalURI, selectionQuery, selectionArgs));
                 break;
-            case 6: //text files
+            case Text:
                 toolbarTitle = "Text files";
                 selectionArgs = Util.getMimeTypeQueryArgs(Util.txt_ext);
                 selectionQuery = Util.getMimeTypeQuery(selectionArgs);
-                fileList = getFileListFromQuery(uri, selectionQuery, selectionArgs);
-                uri = MediaStore.Files.getContentUri("internal");
-                fileList.addAll(getFileListFromQuery(uri, selectionQuery, selectionArgs));
+                fileList = getFileListFromQuery(externalURI, selectionQuery, selectionArgs);
+                fileList.addAll(getFileListFromQuery(internalURI, selectionQuery, selectionArgs));
                 break;
-            case 7: //apk files
+            case APK:
                 toolbarTitle = "Apps";
                 selectionArgs = Util.getMimeTypeQueryArgs(Collections.singletonList("apk"));
                 selectionQuery = Util.getMimeTypeQuery(selectionArgs);
-                uri = MediaStore.Files.getContentUri("external");
-                fileList = getFileListFromQuery(uri, selectionQuery, selectionArgs);
-                uri = MediaStore.Files.getContentUri("internal");
-                fileList.addAll(getFileListFromQuery(uri, selectionQuery, selectionArgs));
+                fileList = getFileListFromQuery(externalURI, selectionQuery, selectionArgs);
+                fileList.addAll(getFileListFromQuery(internalURI, selectionQuery, selectionArgs));
         }
         files = new File[fileList.size()];
         files = fileList.toArray(files);
