@@ -20,7 +20,7 @@ Supported file types and extensions -
 
 1. Media files:
 
-    Audio files - "mp3", "oog", "wav", "mid", "m4a", "amr"  
+    Audio files - "mp3", "ogg", "wav", "mid", "m4a", "amr"  
     
     Image files - "png", "jpg", "gif", "bmp", "jpeg", "webp", "svg"  
     
