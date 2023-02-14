@@ -361,10 +361,10 @@ public class FileViewer extends AppCompatActivity
         }
 
         in = getIntent();
-        if (Intent.ACTION_VIEW.equals(in.getAction()) && in.getType() != null) {
+        if (Intent.ACTION_VIEW.equals(in.getAction())) {
             Uri uri = in.getData();
             if (uri != null) {
-                openFile(new File(uri.getPath()));
+                openFile(getFileFromURI(uri));
             }
         } else {
             switchToHomeView();
@@ -728,7 +728,7 @@ public class FileViewer extends AppCompatActivity
     }
 
     private void openFile(File current_file) {
-        if (!current_file.exists())
+        if (current_file == null || !current_file.exists())
             return;
         current_file.setReadable(true);
         if (!current_file.canRead()) {
@@ -766,116 +766,6 @@ public class FileViewer extends AppCompatActivity
                 Intent in = new Intent(FileViewer.this, HTMLViewer.class);
                 in.putExtra("file", current_file.getPath());
                 startActivity(in);
-            } else if (Util.audio_ext.contains(ext)) {
-                try {
-                    mp.setDataSource(current_file.getPath());
-                    mp.prepare();
-                    meta.setDataSource(current_file.getPath());
-                    data = meta.getEmbeddedPicture();
-                } catch (Exception e) {
-                    isValid = false;
-                    e.printStackTrace();
-                }
-                if (isValid) {
-                    ImageView album_art, icon;
-                    final View player = getLayoutInflater().inflate(R.layout.music_player, null);
-                    btn_play = player.findViewById(R.id.btn_play);
-                    btn_rev = player.findViewById(R.id.btn_rev);
-                    btn_forward = player.findViewById(R.id.btn_forward);
-                    current_duration = player.findViewById(R.id.current_duration);
-                    total_duration = player.findViewById(R.id.total_duration);
-                    seek = player.findViewById(R.id.seek);
-                    title = player.findViewById(R.id.title);
-                    icon = player.findViewById(R.id.imageView);
-                    album_art = player.findViewById(R.id.album_art);
-                    title.setText(current_file.getName());
-                    icon.setImageResource(R.drawable.file_music);
-                    if (data != null) {
-                        album_art.setImageBitmap(BitmapFactory.decodeByteArray(data, 0, data.length));
-                    }
-                    int duration = mp.getDuration();
-                    seek.setMax(duration);
-                    total_duration.setText(Util.getFormattedTimeDuration(duration));
-                    final Handler handler = new Handler();
-                    //Make sure you update Seekbar on UI thread
-                    final Runnable updateseek = new Runnable() {
-                        @Override
-                        public void run() {
-                            int pos = mp.getCurrentPosition();
-                            seek.setProgress(pos);
-                            current_duration.setText(Util.getFormattedTimeDuration(pos));
-                            handler.postDelayed(this, 1000);
-                        }
-                    };
-                    FileViewer.this.runOnUiThread(updateseek);
-                    seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
-                        @Override
-                        public void onProgressChanged(SeekBar seekBar, int position, boolean fromUser) {
-                            if (fromUser) {
-                                mp.seekTo(position);
-                                current_duration.setText(Util.getFormattedTimeDuration(position));
-                            }
-                        }
-
-                        @Override
-                        public void onStartTrackingTouch(SeekBar seekBar) {
-
-                        }
-
-                        @Override
-                        public void onStopTrackingTouch(SeekBar seekBar) {
-
-                        }
-                    });
-                    btn_play.setOnClickListener(view -> {
-                        if (mp.isPlaying()) {
-                            mp.pause();
-                            btn_play.setImageResource(android.R.drawable.ic_media_play);
-                        } else {
-                            mp.start();
-                            btn_play.setImageResource(android.R.drawable.ic_media_pause);
-                        }
-                    });
-                    btn_forward.setOnClickListener(view -> {
-                        int max = mp.getDuration();
-                        int newpos = mp.getCurrentPosition() + 5000;
-                        if (newpos > max) {
-                            mp.seekTo(max);
-                            seek.setProgress(max);
-                        } else {
-                            mp.seekTo(newpos);
-                            seek.setProgress(newpos);
-                        }
-                    });
-                    btn_rev.setOnClickListener(view -> {
-                        int newpos = mp.getCurrentPosition() - 5000;
-                        if (newpos > 0) {
-                            mp.seekTo(newpos);
-                            seek.setProgress(newpos);
-                        } else {
-                            mp.seekTo(0);
-                            seek.setProgress(0);
-                        }
-                    });
-                    final AlertDialog.Builder player_dialog = new AlertDialog.Builder(new ContextThemeWrapper(FileViewer.this, android.R.style.Theme_Black));
-                    player_dialog.setOnCancelListener(dialogInterface -> {
-                        handler.removeCallbacks(updateseek);
-                        mp.stop();
-                        mp.reset();
-                    });
-                    player_dialog.setView(player);
-                    player_dialog.show();
-                } else {
-                    showMsg("Invalid music file", 1);
-                }
-            } else if (Util.image_ext.contains(ext)) {
-                in = new Intent(FileViewer.this, ImageViewer.class);
-                in.putExtra("file", current_file.getPath());
-                startActivity(in);
-            } else if (Util.video_ext.contains(ext)) {
-                in = new Intent(FileViewer.this, VideoPlayer.class);
-                in.putExtra("file", current_file.getPath());
-                startActivity(in);
             } else if (Util.opendoc_ext.contains(ext)) {
                 in = new Intent(FileViewer.this, DOCViewer.class);
                 in.putExtra("file", current_file.getPath());
@@ -889,6 +779,116 @@ public class FileViewer extends AppCompatActivity
                     in = new Intent(FileViewer.this, TextViewer.class);
                     in.putExtra("file", current_file.getPath());
                     startActivity(in);
+                } else if ((mimeType != null && mimeType.contains("image")) || Util.image_ext.contains(ext)) {
+                    in = new Intent(FileViewer.this, ImageViewer.class);
+                    in.putExtra("file", current_file.getPath());
+                    startActivity(in);
+                } else if ((mimeType != null && mimeType.contains("video")) || Util.video_ext.contains(ext)) {
+                    in = new Intent(FileViewer.this, VideoPlayer.class);
+                    in.putExtra("file", current_file.getPath());
+                    startActivity(in);
+                } else if ((mimeType != null && mimeType.contains("audio")) || Util.audio_ext.contains(ext)) {
+                    try {
+                        mp.setDataSource(current_file.getPath());
+                        mp.prepare();
+                        meta.setDataSource(current_file.getPath());
+                        data = meta.getEmbeddedPicture();
+                    } catch (Exception e) {
+                        isValid = false;
+                        e.printStackTrace();
+                    }
+                    if (isValid) {
+                        ImageView album_art, icon;
+                        final View player = getLayoutInflater().inflate(R.layout.music_player, null);
+                        btn_play = player.findViewById(R.id.btn_play);
+                        btn_rev = player.findViewById(R.id.btn_rev);
+                        btn_forward = player.findViewById(R.id.btn_forward);
+                        current_duration = player.findViewById(R.id.current_duration);
+                        total_duration = player.findViewById(R.id.total_duration);
+                        seek = player.findViewById(R.id.seek);
+                        title = player.findViewById(R.id.title);
+                        icon = player.findViewById(R.id.imageView);
+                        album_art = player.findViewById(R.id.album_art);
+                        title.setText(current_file.getName());
+                        icon.setImageResource(R.drawable.file_music);
+                        if (data != null) {
+                            album_art.setImageBitmap(BitmapFactory.decodeByteArray(data, 0, data.length));
+                        }
+                        int duration = mp.getDuration();
+                        seek.setMax(duration);
+                        total_duration.setText(Util.getFormattedTimeDuration(duration));
+                        final Handler handler = new Handler();
+                        //Make sure you update Seekbar on UI thread
+                        final Runnable updateseek = new Runnable() {
+                            @Override
+                            public void run() {
+                                int pos = mp.getCurrentPosition();
+                                seek.setProgress(pos);
+                                current_duration.setText(Util.getFormattedTimeDuration(pos));
+                                handler.postDelayed(this, 1000);
+                            }
+                        };
+                        FileViewer.this.runOnUiThread(updateseek);
+                        seek.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                            @Override
+                            public void onProgressChanged(SeekBar seekBar, int position, boolean fromUser) {
+                                if (fromUser) {
+                                    mp.seekTo(position);
+                                    current_duration.setText(Util.getFormattedTimeDuration(position));
+                                }
+                            }
+
+                            @Override
+                            public void onStartTrackingTouch(SeekBar seekBar) {
+
+                            }
+
+                            @Override
+                            public void onStopTrackingTouch(SeekBar seekBar) {
+
+                            }
+                        });
+                        btn_play.setOnClickListener(view -> {
+                            if (mp.isPlaying()) {
+                                mp.pause();
+                                btn_play.setImageResource(android.R.drawable.ic_media_play);
+                            } else {
+                                mp.start();
+                                btn_play.setImageResource(android.R.drawable.ic_media_pause);
+                            }
+                        });
+                        btn_forward.setOnClickListener(view -> {
+                            int max = mp.getDuration();
+                            int newpos = mp.getCurrentPosition() + 5000;
+                            if (newpos > max) {
+                                mp.seekTo(max);
+                                seek.setProgress(max);
+                            } else {
+                                mp.seekTo(newpos);
+                                seek.setProgress(newpos);
+                            }
+                        });
+                        btn_rev.setOnClickListener(view -> {
+                            int newpos = mp.getCurrentPosition() - 5000;
+                            if (newpos > 0) {
+                                mp.seekTo(newpos);
+                                seek.setProgress(newpos);
+                            } else {
+                                mp.seekTo(0);
+                                seek.setProgress(0);
+                            }
+                        });
+                        final AlertDialog.Builder player_dialog = new AlertDialog.Builder(new ContextThemeWrapper(FileViewer.this, android.R.style.Theme_Black));
+                        player_dialog.setOnCancelListener(dialogInterface -> {
+                            handler.removeCallbacks(updateseek);
+                            mp.stop();
+                            mp.reset();
+                        });
+                        player_dialog.setView(player);
+                        player_dialog.show();
+                    } else {
+                        showMsg("Invalid music file", 1);
+                    }
                 } else {
                     try {
                         Uri uri = FileProvider.getUriForFile(getApplicationContext(), getApplicationContext().getPackageName(), current_file);
@@ -1175,6 +1175,8 @@ public class FileViewer extends AppCompatActivity
                 holder.details.setText(n + " items");
                 holder.icon.setImageResource(n > 0 ? R.drawable.folder : R.drawable.folder_empty);
             } else {
+                MimeTypeMap myMime = MimeTypeMap.getSingleton();
+                String mimeType = myMime.getMimeTypeFromExtension(Util.extension(current_file.getName()));
                 holder.details.setText(Util.displaySize(current_file.length()));
                 String ext = Util.extension(current_file.getName());
                 if ("apk".equals(ext)) {
@@ -1187,15 +1189,17 @@ public class FileViewer extends AppCompatActivity
                 } else if ("pdf".equals(ext)) {
                     holder.icon.setImageResource(R.drawable.file_pdf);
                 } else if ("svg".equals(ext)) {
-                    holder.icon.setImageResource(R.drawable.file_svg);
+                    Glide.with(getApplicationContext()).load(Uri.fromFile(current_file)).placeholder(R.drawable.file_svg).into(holder.icon);
                 } else if ("csv".equals(ext)) {
                     holder.icon.setImageResource(R.drawable.file_csv);
                 } else if ("sqlite".equals(ext)) {
                     holder.icon.setImageResource(R.drawable.file_sqlite);
-                } else if (Util.audio_ext.contains(ext)) {
-                    holder.icon.setImageResource(R.drawable.file_music);
-                } else if (Util.image_ext.contains(ext) || Util.video_ext.contains(ext)) {
-                    Glide.with(getApplicationContext()).load(Uri.fromFile(current_file)).placeholder(R.drawable.loading).into(holder.icon);
+                } else if ((mimeType != null && mimeType.contains("audio")) || Util.audio_ext.contains(ext)) {
+                    Glide.with(getApplicationContext()).load(Uri.fromFile(current_file)).placeholder(R.drawable.file_music).into(holder.icon);
+                } else if ((mimeType != null && mimeType.contains("image")) || Util.image_ext.contains(ext)) {
+                    Glide.with(getApplicationContext()).load(Uri.fromFile(current_file)).placeholder(R.drawable.file_image).into(holder.icon);
+                } else if ((mimeType != null && mimeType.contains("video")) || Util.video_ext.contains(ext)) {
+                    Glide.with(getApplicationContext()).load(Uri.fromFile(current_file)).placeholder(R.drawable.file_video).into(holder.icon);
                 } else if (Util.archive_ext.contains(ext)) {
                     holder.icon.setImageResource(R.drawable.file_archive);
                 } else if (Util.doc_ext.contains(ext)) {
@@ -1282,6 +1286,28 @@ public class FileViewer extends AppCompatActivity
             e.printStackTrace();
             return false;
         }
+    }
+
+    private File getFileFromURI(Uri uri) {
+        // try file first
+        String path = uri.getPath();
+        File f = new File(path);
+        if (f.exists()) {
+            return f;
+        }
+        String dirPath = Environment.getExternalStorageDirectory().getPath();
+        int idx = path.indexOf(dirPath);
+        if (idx > 0) {
+            //path overlap found
+            path = path.substring(idx + dirPath.length());
+        }
+        f = new File(dirPath + path);
+        if (f.exists()) {
+            return f;
+        }
+        // TODO: create temp file? using getContentResolver().openInputStream(uri);
+        showMsg("File not found: " + path, 1);
+        return null;
     }
 
     private File[] sortFiles(File[] f) {

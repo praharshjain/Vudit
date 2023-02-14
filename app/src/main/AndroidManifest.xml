@@ -118,6 +118,10 @@
                 <data android:pathPattern=".*\\.webm" />
                 <data android:pathPattern=".*\\.m3u8" />
                 <data android:pathPattern=".*\\.m3u" />
+                <data android:pathPattern=".*\\.3g2" />
+                <data android:pathPattern=".*\\.avi" />
+                <data android:pathPattern=".*\\.mov" />
+                <data android:pathPattern=".*\\.vob" />
                 <!-- Documents -->
                 <data android:pathPattern=".*\\.odt" />
                 <data android:pathPattern=".*\\.ott" />
