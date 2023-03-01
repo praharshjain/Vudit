@@ -1192,6 +1192,8 @@ public class FileViewer extends AppCompatActivity
                     holder.icon.setImageDrawable(pi.applicationInfo.loadIcon(pm));
                 } else if ("pdf".equals(ext)) {
                     holder.icon.setImageResource(R.drawable.file_pdf);
+                } else if ("epub".equals(ext)) {
+                    holder.icon.setImageResource(R.drawable.file_epub);
                 } else if ("svg".equals(ext)) {
                     Glide.with(getApplicationContext()).load(Uri.fromFile(current_file)).placeholder(R.drawable.file_svg).into(holder.icon);
                 } else if ("csv".equals(ext)) {
