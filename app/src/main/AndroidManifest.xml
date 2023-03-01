@@ -132,6 +132,7 @@
                 <data android:pathPattern=".*\\.fodt" />
                 <data android:pathPattern=".*\\.fods" />
                 <data android:pathPattern=".*\\.fodp" />
+                <data android:pathPattern=".*\\.epub" />
             </intent-filter>
         </activity>
         <activity
@@ -190,6 +191,14 @@
             android:hardwareAccelerated="true"
             android:icon="@mipmap/ic_launcher"
             android:label="SQLiteViewer"
+            android:theme="@style/Theme.AppCompat.NoActionBar" />
+        <activity
+            android:name=".EPUBViewer"
+            android:alwaysRetainTaskState="true"
+            android:exported="true"
+            android:hardwareAccelerated="true"
+            android:icon="@mipmap/ic_launcher"
+            android:label="EPUBViewer"
             android:theme="@style/Theme.AppCompat.NoActionBar" />
     </application>
 

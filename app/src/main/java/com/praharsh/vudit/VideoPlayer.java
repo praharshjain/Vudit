@@ -2,7 +2,6 @@ package com.praharsh.vudit;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -20,30 +19,26 @@ public class VideoPlayer extends Activity {
         hideStatusBar();
         setContentView(R.layout.video_player);
         vw = findViewById(R.id.videoView);
-        vw.setOnSystemUiVisibilityChangeListener(new View.OnSystemUiVisibilityChangeListener() {
-            @Override
-            public void onSystemUiVisibilityChange(int i) {
-                hideStatusBar();
-            }
-        });
+        vw.setOnSystemUiVisibilityChangeListener(i -> hideStatusBar());
         progressDialog = new ProgressDialog(this);
         showProgressBar();
         MediaController mc = new MediaController(this);
         mc.setAnchorView(vw);
         mc.setMediaPlayer(vw);
         Uri video = null;
+        String filePath = getIntent().getStringExtra("file");
         try {
-            video = Uri.parse(getIntent().getStringExtra("file"));
+            video = Uri.parse(filePath);
         } catch (Exception e) {
+            //TODO: try to open in web media player
             finish();
         }
         vw.setVideoURI(video);
         vw.setMediaController(mc);
-        vw.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
-            @Override
-            public void onPrepared(MediaPlayer mp) {
-                progressDialog.dismiss();
-            }
+        vw.setOnPreparedListener(mp -> progressDialog.dismiss());
+        vw.setOnErrorListener((mp, what, extra) -> {
+            //TODO: try to open in web media player
+            return false;
         });
         vw.requestFocus();
         vw.start();

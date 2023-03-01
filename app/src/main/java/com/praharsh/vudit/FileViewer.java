@@ -766,6 +766,10 @@ public class FileViewer extends AppCompatActivity
                 Intent in = new Intent(FileViewer.this, HTMLViewer.class);
                 in.putExtra("file", current_file.getPath());
                 startActivity(in);
+            } else if ("epub".equals(ext)) {
+                in = new Intent(FileViewer.this, EPUBViewer.class);
+                in.putExtra("file", current_file.getPath());
+                startActivity(in);
             } else if (Util.opendoc_ext.contains(ext)) {
                 in = new Intent(FileViewer.this, DOCViewer.class);
                 in.putExtra("file", current_file.getPath());
