@@ -7,6 +7,8 @@
 ==========
 A file viewer for Android
 
+Desktop version here - https://github.com/praharshjain/Vudit-Desktop
+
 Features
 ----------------
 * Files listing
