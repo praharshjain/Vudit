@@ -29,10 +29,10 @@ Supported file types and extensions -
     Video files - "mp4", "3gp", "mkv", "webm", "flv", "3g2", "avi", "mov", "vob", "m4v"
 
 2. Document files:
+ 
+    Open document formats - "odt", "ott", "odp", "otp", "ods", "ots", "fodt", "fods", "fodp"
 
-    PDF files - "pdf"
-    
-    Open document formats - "odt", "ott", "odp", "otp", "ods", "ots", "fodt", "fods", "fodp"  
+    Other formats - "pdf", "djv", "djvu", "epub", "opf", "tex", "latex"
     
 3. Zip Archive (zip)
 
@@ -40,7 +40,7 @@ Supported file types and extensions -
 
 5. Text files and code files (with syntax highlighting):
     
-    "ascii", "asm", "awk", "bash", "bat", "bf", "bsh", "c", "cert", "cgi", "clj", "conf", "cpp", "cs", "css", "csv", "elr", "go", "h", "hs", "htaccess", "htm", "html", "ini", "java", "js", "json", "key", "lisp", "log", "lua", "md", "mkdn", "pem", "php", "pl", "py", "rb", "readme", "scala", "sh", "sql", "srt", "sub", "tex", "txt", "vb", "vbs", "vhdl", "wollok", "xml", "xsd", "xsl", "yaml", "iml", "gitignore", "gradle"  
+    "ascii", "asm", "awk", "bash", "bat", "bf", "bsh", "c", "cert", "cgi", "clj", "conf", "cpp", "cs", "css", "csv", "elr", "go", "h", "hs", "htaccess", "htm", "html", "ini", "java", "js", "json", "key", "lisp", "log", "lua", "md", "mkdn", "pem", "php", "pl", "py", "rb", "readme", "scala", "sh", "sql", "srt", "sub", "txt", "vb", "vbs", "vhdl", "wollok", "xml", "xsd", "xsl", "yaml", "iml", "gitignore", "gradle"  
     
 6. Any other file with mime type text
 

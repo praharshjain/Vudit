@@ -9,15 +9,26 @@ public class DOCViewer extends WebViewBaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         String file_path = getIntent().getStringExtra("file");
-        boolean isPDF = getIntent().getBooleanExtra("isPDF", false);
+        String type = getIntent().getStringExtra("type");
         try {
             file_path = encode("file://" + file_path, "UTF-8");
         } catch (Exception e) {
             e.printStackTrace();
         }
-        if (isPDF)
-            wv.loadUrl("file:///android_asset/pdfviewer/web/viewer.html?file=" + file_path);
-        else
-            wv.loadUrl("file:///android_asset/docviewer/index.html?file=" + file_path);
+        switch (type) {
+            case "pdf":
+                wv.loadUrl("file:///android_asset/pdfviewer/web/viewer.html?file=" + file_path);
+                break;
+            case "djv":
+            case "djvu":
+                wv.loadUrl("file:///android_asset/djvuviewer/index.html?file=" + file_path);
+                break;
+            case "tex":
+            case "latex":
+                wv.loadUrl("file:///android_asset/latexviewer/index.html?file=" + file_path);
+                break;
+            default:
+                wv.loadUrl("file:///android_asset/docviewer/index.html?file=" + file_path);
+        }
     }
 }

@@ -744,12 +744,7 @@ public class FileViewer extends AppCompatActivity
         } else if (current_file.isFile()) {
             isValid = true;
             String ext = Util.extension(current_file.getName());
-            if ("pdf".equals(ext)) {
-                in = new Intent(FileViewer.this, DOCViewer.class);
-                in.putExtra("file", current_file.getPath());
-                in.putExtra("isPDF", true);
-                startActivity(in);
-            } else if ("sqlite".equals(ext)) {
+             if ("sqlite".equals(ext)) {
                 in = new Intent(FileViewer.this, SQLiteViewer.class);
                 in.putExtra("file", current_file.getPath());
                 startActivity(in);
@@ -766,14 +761,14 @@ public class FileViewer extends AppCompatActivity
                 Intent in = new Intent(FileViewer.this, HTMLViewer.class);
                 in.putExtra("file", current_file.getPath());
                 startActivity(in);
-            } else if ("epub".equals(ext)) {
+            } else if ("epub".equals(ext) || "opf".equals(ext)) {
                 in = new Intent(FileViewer.this, EPUBViewer.class);
                 in.putExtra("file", current_file.getPath());
                 startActivity(in);
-            } else if (Util.opendoc_ext.contains(ext)) {
+            } else if (Util.supported_doc_ext.contains(ext)) {
                 in = new Intent(FileViewer.this, DOCViewer.class);
                 in.putExtra("file", current_file.getPath());
-                in.putExtra("isPDF", false);
+                in.putExtra("type", ext);
                 startActivity(in);
             } else {
                 MimeTypeMap myMime = MimeTypeMap.getSingleton();
@@ -1192,7 +1187,9 @@ public class FileViewer extends AppCompatActivity
                     holder.icon.setImageDrawable(pi.applicationInfo.loadIcon(pm));
                 } else if ("pdf".equals(ext)) {
                     holder.icon.setImageResource(R.drawable.file_pdf);
-                } else if ("epub".equals(ext)) {
+                } else if ("djv".equals(ext) || "djvu".equals(ext)) {
+                    holder.icon.setImageResource(R.drawable.file_djvu);
+                } else if ("epub".equals(ext) || "opf".equals(ext)) {
                     holder.icon.setImageResource(R.drawable.file_epub);
                 } else if ("svg".equals(ext)) {
                     Glide.with(getApplicationContext()).load(Uri.fromFile(current_file)).placeholder(R.drawable.file_svg).into(holder.icon);
@@ -1438,8 +1435,7 @@ public class FileViewer extends AppCompatActivity
                 List<String> extList = new ArrayList<>(Util.doc_ext);
                 extList.addAll(Util.xl_ext);
                 extList.addAll(Util.ppt_ext);
-                extList.addAll(Util.opendoc_ext);
-                extList.add("pdf");
+                extList.addAll(Util.supported_doc_ext);
                 selectionArgs = Util.getMimeTypeQueryArgs(extList);
                 selectionQuery = Util.getMimeTypeQuery(selectionArgs);
                 fileList = getFileListFromQuery(externalURI, selectionQuery, selectionArgs);
