@@ -19,6 +19,10 @@ public class DOCViewer extends WebViewBaseActivity {
             case "pdf":
                 wv.loadUrl("file:///android_asset/pdfviewer/web/viewer.html?file=" + file_path);
                 break;
+            case "wmf":
+            case "rtf":
+                wv.loadUrl("file:///android_asset/rtfviewer/index.html?file=" + file_path);
+                break;
             case "djv":
             case "djvu":
                 wv.loadUrl("file:///android_asset/djvuviewer/index.html?file=" + file_path);
@@ -26,6 +30,14 @@ public class DOCViewer extends WebViewBaseActivity {
             case "tex":
             case "latex":
                 wv.loadUrl("file:///android_asset/latexviewer/index.html?file=" + file_path);
+                break;
+            case "md":
+            case "mkd":
+            case "mkdn":
+            case "mdwn":
+            case "mdown":
+            case "markdown":
+                wv.loadUrl("file:///android_asset/markdownviewer/index.html?file=" + file_path);
                 break;
             default:
                 wv.loadUrl("file:///android_asset/docviewer/index.html?file=" + file_path);

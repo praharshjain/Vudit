@@ -1187,6 +1187,8 @@ public class FileViewer extends AppCompatActivity
                     holder.icon.setImageDrawable(pi.applicationInfo.loadIcon(pm));
                 } else if ("pdf".equals(ext)) {
                     holder.icon.setImageResource(R.drawable.file_pdf);
+                } else if ("rtf".equals(ext)) {
+                    holder.icon.setImageResource(R.drawable.file_rtf);
                 } else if ("djv".equals(ext) || "djvu".equals(ext)) {
                     holder.icon.setImageResource(R.drawable.file_djvu);
                 } else if ("epub".equals(ext) || "opf".equals(ext)) {

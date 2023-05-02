@@ -17,7 +17,7 @@ public class Util {
     static final List<String> image_ext = Arrays.asList("png", "jpg", "gif", "bmp", "jpeg", "webp");
     static final List<String> video_ext = Arrays.asList("mp4", "3gp", "mkv", "webm", "flv", "m4v", "3g2", "avi", "mov", "vob");
     static final List<String> web_ext = Arrays.asList("htm", "html", "js", "xml");
-    static final List<String> supported_doc_ext = Arrays.asList("pdf", "djv", "djvu", "tex", "latex", "odt", "ott", "odp", "otp", "ods", "ots", "fodt", "fods", "fodp");
+    static final List<String> supported_doc_ext = Arrays.asList("pdf", "djv", "djvu", "tex", "latex", "rtf", "wmf", "md", "mkd", "mkdn", "mdwn", "mdown", "markdown", "odt", "ott", "odp", "otp", "ods", "ots", "fodt", "fods", "fodp");
     static final List<String> txt_ext = Arrays.asList("ascii", "asm", "awk", "bash", "bat", "bf", "bsh", "c", "cert", "cgi", "clj", "conf", "cpp", "cs", "css", "csv", "elr", "go", "h", "hs", "htaccess", "htm", "html", "ini", "java", "js", "json", "key", "lisp", "log", "lua", "md", "mkdn", "pem", "php", "pl", "py", "rb", "readme", "scala", "sh", "sql", "srt", "sub", "txt", "vb", "vbs", "vhdl", "wollok", "xml", "xsd", "xsl", "yaml", "iml", "gitignore", "gradle");
     //only icons
     static final List<String> archive_ext = Arrays.asList("zip", "jar", "rar", "tar", "gz", "lz", "7z", "tgz", "tlz", "war", "ace", "cab", "dmg", "tar.gz");

@@ -1,0 +1,63 @@
+<html>
+
+    <body>
+        <div id="metadata"></div>
+        <div id="viewer"></div>
+        <script src="js/WMFJS.bundle.js"></script>
+        <script src="js/EMFJS.bundle.js"></script>
+        <script src="js/RTFJS.bundle.js"></script>
+        <script>
+            function getFileExt(filePath) {
+                return filePath.substring(filePath.lastIndexOf('.') + 1, filePath.length).toLowerCase().trim();
+            }
+            function getParameterByName(name, url) {
+                if (!url) {
+                    url = window.location.href;
+                }
+                name = name.replace(/[\[\]]/g, "\\$&");
+                let regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"), results = regex.exec(url);
+                if (!results) return null;
+                if (!results[2]) return '';
+                return decodeURIComponent(results[2].replace(/\+/g, " "));
+            }
+            let ren = null;
+            RTFJS.loggingEnabled(false);
+            WMFJS.loggingEnabled(false);
+            EMFJS.loggingEnabled(false);
+            const viewer = document.getElementById('viewer');
+            const filePath = getParameterByName('file');
+            const ext = getFileExt(filePath);
+            let request = new XMLHttpRequest();
+            request.open('GET', filePath, true);
+            request.responseType = 'blob';
+            request.onload = function () {
+                let reader = new FileReader();
+                reader.readAsArrayBuffer(request.response);
+                reader.onload = function (e) {
+                    const arrayBuffer = new Uint8Array(reader.result);
+                    if (ext == "rtf") {
+                        const doc = new RTFJS.Document(arrayBuffer);
+                        doc.render().then(function (htmlArr) {
+                            for (let i = 0; i < htmlArr.length; i++) {
+                                viewer.appendChild(htmlArr[i]);
+                            }
+                        }).catch(error => console.error(error));
+                    } else if (ext == "wmf") {
+                        const settings = {
+                            width: window.innerWidth + "px",
+                            height: window.innerHeight + "px",
+                            xExt: window.innerWidth,
+                            yExt: window.innerHeight,
+                            mapMode: 8
+                        };
+                        let renderer = new WMFJS.Renderer(e.target.result);
+                        ren = renderer;
+                        viewer.appendChild(renderer.render(settings));
+                    }
+                };
+            };
+            request.send();
+        </script>
+    </body>
+
+</html>

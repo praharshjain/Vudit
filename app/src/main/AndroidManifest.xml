@@ -133,6 +133,18 @@
                 <data android:pathPattern=".*\\.fods" />
                 <data android:pathPattern=".*\\.fodp" />
                 <data android:pathPattern=".*\\.epub" />
+                <data android:pathPattern=".*\\.djv" />
+                <data android:pathPattern=".*\\.djvu" />
+                <data android:pathPattern=".*\\.tex" />
+                <data android:pathPattern=".*\\.latex" />
+                <data android:pathPattern=".*\\.rtf" />
+                <data android:pathPattern=".*\\.wmf" />
+                <data android:pathPattern=".*\\.md" />
+                <data android:pathPattern=".*\\.mkd" />
+                <data android:pathPattern=".*\\.mkdn" />
+                <data android:pathPattern=".*\\.mdwn" />
+                <data android:pathPattern=".*\\.mdown" />
+                <data android:pathPattern=".*\\.markdown" />
             </intent-filter>
         </activity>
         <activity

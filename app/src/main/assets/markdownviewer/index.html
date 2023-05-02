@@ -1,0 +1,50 @@
+<html>
+
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/easymde.css">
+    <link rel="stylesheet" href="css/highlight.css">
+    <link rel="stylesheet" href="css/font-awesome.css">
+    <script src="js/highlight.js"></script>
+    <script src="js/font-awesome.js"></script>
+    <script src="js/easymde.js"></script>
+    <textarea id="markdown-txt"></textarea>
+    <script>
+        function getParameterByName(name, url) {
+            if (!url) {
+                url = window.location.href;
+            }
+            name = name.replace(/[\[\]]/g, "\\$&");
+            let regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"), results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
+        function readFile(filePath) {
+            let rawFile = new XMLHttpRequest();
+            rawFile.open("GET", filePath, false);
+            rawFile.onreadystatechange = function () {
+                if (rawFile.readyState === 4) {
+                    if (rawFile.status === 200 || rawFile.status == 0) {
+                        easyMDE.value(rawFile.responseText);
+                        if (!easyMDE.isPreviewActive()) {
+                            easyMDE.togglePreview();
+                        }
+                    }
+                }
+            }
+            rawFile.send(null);
+        }
+
+        const easyMDE = new EasyMDE({
+            lineNumbers: true,
+            sideBySideFullscreen: true,
+            renderingConfig: {
+                codeSyntaxHighlighting: true,
+            },
+            element: document.getElementById('markdown-txt'),
+        });
+        const filePath = getParameterByName('file');
+        readFile(filePath);
+    </script>
+
+</html>
