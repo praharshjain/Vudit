@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <title>Jupyter Notebook Viewer</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="initial-scale=1">
+        <script src="js/vendor/marked.min.js"></script>
+        <script src="js/vendor/purify.min.js"></script>
+        <script src="js/vendor/ansi_up.min.js"></script>
+        <script src="js/vendor/prism.min.js"></script>
+        <script src="js/vendor/katex.min.js"></script>
+        <script src="js/vendor/katex-auto-render.min.js"></script>
+        <script src="js/vendor/notebook.min.js"></script>
+        <link rel="stylesheet" href="css/vendor/katex.min.css" />
+        <link rel="stylesheet" href="css/vendor/prism.css" />
+        <link rel="stylesheet" href="css/notebook.css" />
+        <link rel="stylesheet" href="css/nbpreview.css" />
+    </head>
+
+    <body>
+        <div id="main">
+            <div id="controls">
+                <div id="header">Jupyter Notebook Viewer</div>
+                <input type="file" id="file">
+            </div>
+            <div id="notebook-holder"></div>
+        </div>
+        <script src="js/nbpreview.js"></script>
+    </body>
+
+</html>

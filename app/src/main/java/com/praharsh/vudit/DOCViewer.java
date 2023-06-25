@@ -31,6 +31,9 @@ public class DOCViewer extends WebViewBaseActivity {
             case "latex":
                 wv.loadUrl("file:///android_asset/latexviewer/index.html?file=" + file_path);
                 break;
+            case "ipynb":
+                wv.loadUrl("file:///android_asset/ipynbviewer/index.html?file=" + file_path);
+                break;
             case "md":
             case "mkd":
             case "mkdn":
