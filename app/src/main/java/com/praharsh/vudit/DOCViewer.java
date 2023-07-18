@@ -34,6 +34,9 @@ public class DOCViewer extends WebViewBaseActivity {
             case "ipynb":
                 wv.loadUrl("file:///android_asset/ipynbviewer/index.html?file=" + file_path);
                 break;
+            case "pgn":
+                wv.loadUrl("file:///android_asset/pgnviewer/index.html?file=" + file_path);
+                break;
             case "md":
             case "mkd":
             case "mkdn":

@@ -15,6 +15,7 @@ Features
 * Image viewer, music and video player
 * PDF viewer
 * HTML viewer
+* PGN viewer
 * Code syntax highligher
 * Save recently viewed and favourite items
 
@@ -32,7 +33,7 @@ Supported file types and extensions -
  
     Open document formats - "odt", "ott", "odp", "otp", "ods", "ots", "fodt", "fods", "fodp"
 
-    Other formats - "pdf", "djv", "djvu", "epub", "opf", "tex", "latex", "rtf", "wmf", "md", "mkd", "mkdn", "mdwn", "mdown", "markdown"
+    Other formats - "pdf", "djv", "djvu", "epub", "opf", "tex", "latex", "rtf", "wmf", "md", "mkd", "mkdn", "mdwn", "mdown", "markdown", "ipynb", "pgn"
     
 3. Zip Archive (zip)
 

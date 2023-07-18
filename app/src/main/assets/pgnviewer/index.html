@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+
+<head>
+    <script src="dist.js" type="text/javascript"></script>
+</head>
+
+<body>
+    <div id="board"></div>
+
+    <script>
+        function getParameterByName(name, url) {
+            if (!url) {
+                url = window.location.href;
+            }
+            name = name.replace(/[\[\]]/g, "\\$&");
+            let regex = new RegExp("[?&]" + name + "(=([^&#]*)|&|#|$)"),results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, " "));
+        }
+        let layout = 'top';
+        let boardSize = (window.innerWidth - 50) + 'px';
+        if (window.innerWidth > window.innerHeight) {
+            layout = 'left';
+            boardSize = ((window.innerWidth / 2) + 100) + 'px';
+        }
+        const filePath = getParameterByName('file');
+        PGNV.pgnView('board', {
+            pgnFile: filePath,
+            pieceStyle: 'alpha',
+            layout: layout,
+            boardSize: boardSize,
+            theme: 'brown',
+            notation: 'long',
+            headers: true,
+            coordsInner: false,
+            resizable: false,
+            colorMarker: true,
+            showResult: true,
+            manyGames: true,
+            figurine: 'alpha',
+        });
+    </script>
+</body>
+
+</html>
