@@ -1,13 +1,16 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 33
+    compileSdkVersion 34
     buildToolsVersion '34.0.0'
 
+    dexOptions {
+        javaMaxHeapSize "4G"
+    }
     defaultConfig {
         applicationId "com.praharsh.vudit"
         minSdkVersion 17
-        targetSdkVersion 33
+        targetSdkVersion 34
         multiDexEnabled true
         versionCode 1
         versionName "1.0"
@@ -15,13 +18,12 @@ android {
     buildTypes {
         debug {
             splits.abi.enable = false
-            splits.density.enable = false
             ext.alwaysUpdateBuildId = false
         }
         release {
             minifyEnabled true
             shrinkResources true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     namespace 'com.praharsh.vudit'
@@ -31,7 +33,7 @@ dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     testImplementation 'junit:junit:4.12'
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.9.0-alpha02'
+    implementation 'com.google.android.material:material:1.11.0'
     implementation 'com.github.bumptech.glide:glide:4.12.0'
     implementation 'com.github.piasy:BigImageViewer:1.8.1'
     implementation 'com.github.piasy:ProgressPieIndicator:1.8.1'
